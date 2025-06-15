@@ -1,0 +1,87 @@
+body {
+    background: #f7f9fa;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.leaderboard-table {
+    width: 100%;
+    max-width: 600px;
+    margin: 2rem auto 1rem auto;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+}
+
+.leaderboard-table th {
+    background: #3498db;
+    color: #fff;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #2980b9;
+}
+
+.leaderboard-table tr:nth-child(even) {
+    background: #f2f6fa;
+}
+
+.leaderboard-table tr:nth-child(odd) {
+    background: #fff;
+}
+
+.leaderboard-table td {
+    font-size: 1rem;
+    color: #2c3e50;
+}
+
+.leaderboard-table tr:first-child td {
+    font-weight: bold;
+    color: #27ae60;
+    background: #eafaf1;
+}
+
+.leaderboard-table tr:hover {
+    background: #e3f1fa;
+    transition: background 0.2s;
+}
+
+.home-button {
+    display: block;
+    margin: 2rem auto 0 auto;
+    padding: 0.75rem 2rem;
+    background: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.07);
+}
+
+.home-button:hover {
+    background: #2980b9;
+}
+
+@media (max-width: 700px) {
+    .leaderboard-table th, .leaderboard-table td {
+        padding: 0.7rem 0.5rem;
+        font-size: 0.95rem;
+    }
+    .leaderboard-table {
+        max-width: 98vw;
+    }
+    .home-button {
+        width: 90vw;
+        font-size: 0.95rem;
+    }
+} 
