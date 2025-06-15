@@ -69,6 +69,7 @@ def rate_limit(key_prefix, limit=100, period=3600):
 def home(request):
     return render(request, 'index.html')
 
+@ensure_csrf_cookie
 def create(request):
     return render(request, 'create.html')
 
