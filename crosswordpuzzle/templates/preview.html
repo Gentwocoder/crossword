@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Preview</title>
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+    <link rel="stylesheet" href="{% static 'create.css' %}">
+    <style>
+        .preview-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .preview-grid {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .preview-clues {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .preview-clues section {
+            flex: 1;
+            min-width: 300px;
+            max-width: 500px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-clues h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .preview-clues ol {
+            list-style-position: inside;
+            padding-left: 10px;
+        }
+
+        .preview-clues li {
+            margin-bottom: 12px;
+            line-height: 1.4;
+            color: #2c3e50;
+        }
+
+        .preview-clues .clue-number {
+            font-weight: bold;
+            color: #3498db;
+            margin-right: 8px;
+        }
+
+        #crossword-grid {
+            display: grid;
+            gap: 1px;
+            background-color: #000;
+            padding: 1px;
+            border: 2px solid #2c3e50;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .cell.black {
+            background-color: #000;
+        }
+
+        .cell-number {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <header>
+            <h1>Puzzle Preview</h1>
+            <nav>
+                <a href="javascript:window.close()" class="nav-link">Close Preview</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="preview-grid">
+                <div id="crossword-grid">
+                    <!-- Grid will be dynamically generated -->
+                </div>
+            </div>
+
+            <div class="preview-clues">
+                <section class="across-clues">
+                    <h2>Across</h2>
+                    <ol id="across-clues-list">
+                        <!-- Across clues will be dynamically generated -->
+                    </ol>
+                </section>
+
+                <section class="down-clues">
+                    <h2>Down</h2>
+                    <ol id="down-clues-list">
+                        <!-- Down clues will be dynamically generated -->
+                    </ol>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get preview data from session storage
+            const previewData = JSON.parse(sessionStorage.getItem('puzzlePreview'));
+            if (!previewData) {
+                document.body.innerHTML = '<div class="error-message">No preview data available</div>';
+                return;
+            }
+
+            // Generate grid
+            const grid = document.getElementById('crossword-grid');
+            grid.style.gridTemplateColumns = `repeat(${previewData.cols}, 40px)`;
+            grid.style.gridTemplateRows = `repeat(${previewData.rows}, 40px)`;
+
+            // Create empty grid
+            for (let i = 0; i < previewData.rows; i++) {
+                for (let j = 0; j < previewData.cols; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    grid.appendChild(cell);
+                }
+            }
+
+            // Place words in grid and collect clues
+            const acrossClues = [];
+            const downClues = [];
+            let clueNumber = 1;
+
+            previewData.words.forEach(word => {
+                // Add clue to appropriate list
+                const clueObj = {
+                    number: clueNumber,
+                    hint: word.hint
+                };
+                
+                if (word.direction === 'across') {
+                    acrossClues.push(clueObj);
+                } else {
+                    downClues.push(clueObj);
+                }
+
+                // Place word in grid
+                for (let i = 0; i < word.word.length; i++) {
+                    const row = word.direction === 'across' ? word.startRow : word.startRow + i;
+                    const col = word.direction === 'across' ? word.startCol + i : word.startCol;
+                    const cell = grid.children[row * previewData.cols + col];
+                    
+                    // Add cell number if it's the start of the word
+                    if (i === 0) {
+                        const numberSpan = document.createElement('span');
+                        numberSpan.className = 'cell-number';
+                        numberSpan.textContent = clueNumber;
+                        cell.appendChild(numberSpan);
+                    }
+                    
+                    cell.textContent = word.word[i];
+                }
+                clueNumber++;
+            });
+
+            // Display clues
+            const acrossCluesList = document.getElementById('across-clues-list');
+            const downCluesList = document.getElementById('down-clues-list');
+
+            acrossClues.forEach(clue => {
+                const li = document.createElement('li');
+                const numberSpan = document.createElement('span');
+                numberSpan.className = 'clue-number';
+                numberSpan.textContent = `${clue.number}.`;
+                li.appendChild(numberSpan);
+                li.appendChild(document.createTextNode(clue.hint));
+                acrossCluesList.appendChild(li);
+            });
+
+            downClues.forEach(clue => {
+                const li = document.createElement('li');
+                const numberSpan = document.createElement('span');
+                numberSpan.className = 'clue-number';
+                numberSpan.textContent = `${clue.number}.`;
+                li.appendChild(numberSpan);
+                li.appendChild(document.createTextNode(clue.hint));
+                downCluesList.appendChild(li);
+            });
+        });
+    </script>
+</body>
+</html> 

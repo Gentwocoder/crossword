@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossword Puzzle</title>
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Crossword Puzzle Game</h1>
+        </header>
+
+        <main>
+            <div class="welcome-section">
+                <h2>Welcome to Crossword Puzzle!</h2>
+                <p>Create your own puzzle or join an existing one.</p>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{% url 'create' %}" class="action-button create">
+                    <h3>Create New Puzzle</h3>
+                    <p>Design your own crossword puzzle and share it with others</p>
+                </a>
+                
+                <a href="{% url 'join' %}" class="action-button join">
+                    <h3>Join Puzzle</h3>
+                    <p>Enter a puzzle code to start playing</p>
+                </a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

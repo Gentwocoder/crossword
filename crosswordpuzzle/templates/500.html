@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        text-align: center;
+        padding: 50px 20px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .error-code {
+        font-size: 120px;
+        color: #e74c3c;
+        margin: 0;
+    }
+    
+    .error-message {
+        font-size: 24px;
+        color: #2c3e50;
+        margin: 20px 0;
+    }
+    
+    .home-link {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 20px;
+        transition: background-color 0.3s;
+    }
+    
+    .home-link:hover {
+        background-color: #2980b9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <h1 class="error-code">500</h1>
+    <p class="error-message">Sorry! Something went wrong on our end.</p>
+    <a href="{% url 'home' %}" class="home-link">Return to Home</a>
+</div>
+{% endblock %} 

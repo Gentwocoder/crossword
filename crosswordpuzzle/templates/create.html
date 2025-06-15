@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Crossword Puzzle</title>
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+    <link rel="stylesheet" href="{% static 'create.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Create New Crossword Puzzle</h1>
+            <nav>
+                <a href="{% url 'home' %}" class="nav-link">Back to Home</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="puzzle-creator">
+                <div class="game-settings">
+                    <h2>Game Settings</h2>
+                    <div class="input-group">
+                        <label for="game-duration">Game Duration (minutes):</label>
+                        <input type="number" id="game-duration" min="1" max="120" value="30">
+                    </div>
+                </div>
+
+                <div class="grid-size-selector">
+                    <h2>Select Grid Template</h2>
+                    <div class="template-grid">
+                        <div class="template-list">
+                            <select id="template-selector">
+                                <option value="">Choose a template...</option>
+                                <!-- Templates will be populated by JavaScript -->
+                            </select>
+                            <button id="use-template">Use Template</button>
+                        </div>
+                        <div class="template-preview">
+                            <h3>Template Preview</h3>
+                            <div id="template-preview-grid"></div>
+                        </div>
+                    </div>
+                    <div class="size-inputs">
+                        <h3>Or Create Custom Grid</h3>
+                        <div class="input-group">
+                            <label for="rows">Rows:</label>
+                            <input type="number" id="rows" min="5" max="15" value="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="cols">Columns:</label>
+                            <input type="number" id="cols" min="5" max="15" value="10">
+                        </div>
+                        <button id="generate-grid">Generate Grid</button>
+                        <button id="show-import-modal">Import Grid</button>
+                    </div>
+                </div>
+
+                <div class="puzzle-editor">
+                    <div class="grid-container">
+                        <div class="row-numbers"></div>
+                        <div class="col-numbers"></div>
+                        <div id="crossword-grid">
+                            <!-- Grid will be dynamically generated -->
+                        </div>
+                    </div>
+
+                    <div class="word-inputs">
+                        <h2>Word Input</h2>
+                        <div class="input-section">
+                            <div class="input-group">
+                                <label for="word">Word:</label>
+                                <input type="text" id="word" placeholder="Enter word">
+                            </div>
+                            <div class="input-group">
+                                <label for="hint">Hint:</label>
+                                <textarea id="hint" placeholder="Enter hint for this word"></textarea>
+                            </div>
+                            <div class="input-group">
+                                <label for="direction">Direction:</label>
+                                <select id="direction">
+                                    <option value="across">Across</option>
+                                    <option value="down">Down</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="start-row">Start Row:</label>
+                                <input type="number" id="start-row" min="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="start-col">Start Column:</label>
+                                <input type="number" id="start-col" min="0">
+                            </div>
+                            <button id="add-word">Add Word</button>
+                        </div>
+
+                        <div class="word-list">
+                            <h3>Added Words</h3>
+                            <ul id="words-list">
+                                <!-- Added words will appear here -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="puzzle-actions">
+                    <button id="preview-puzzle">Preview Puzzle</button>
+                    <button id="generate-code">Generate Puzzle Code</button>
+                </div>
+
+                <div id="puzzle-code" class="hidden">
+                    <h2>Puzzle Code</h2>
+                    <div class="code-display">
+                        <input type="text" id="code" readonly>
+                        <button id="copy-code">Copy Code</button>
+                    </div>
+                </div>
+
+                <div id="import-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <span class="close-modal" id="close-import-modal">&times;</span>
+                        <h2>Import Grid Structure</h2>
+                        <div class="import-instructions">
+                            <p>You can import a grid structure in two ways:</p>
+                            <ol>
+                                <li>Paste your grid below using:
+                                    <ul>
+                                        <li><code>.</code> or <code>0</code> for white cells</li>
+                                        <li><code>#</code> or <code>1</code> for black cells</li>
+                                    </ul>
+                                </li>
+                                <li>Upload a text file with the same format</li>
+                            </ol>
+                            <p>Example grid:</p>
+                            <pre>
+. . # . .
+. # # . .
+. . . . .
+# . # . #
+. . . # .</pre>
+                        </div>
+                        <div class="import-inputs">
+                            <textarea id="import-grid-text" rows="10" cols="40" placeholder="Paste your grid here..."></textarea>
+                            <div class="file-input">
+                                <p>or upload a file:</p>
+                                <input type="file" id="import-grid-file" accept=".txt">
+                            </div>
+                        </div>
+                        <div id="import-error" class="error-message hidden"></div>
+                        <button id="import-grid-btn">Import Grid</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{% static 'grid-templates.js' %}"></script>
+    <script src="{% static 'create.js' %}"></script>
+</body>
+</html>

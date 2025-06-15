@@ -1,0 +1,472 @@
+.game-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+}
+
+.game-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.start-game-btn {
+    padding: 0.5rem 1rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.start-game-btn:hover {
+    background-color: #45a049;
+}
+
+.waiting-room {
+    text-align: center;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.players-list {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.player-item.current {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196F3;
+}
+
+.player-name {
+    font-weight: bold;
+}
+
+.player-score {
+    color: #666;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.puzzle-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    gap: 2rem;
+    padding: 1rem;
+    align-items: start;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.game-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.leaderboard {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.leaderboard h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+#leaderboard-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#leaderboard-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+}
+
+#leaderboard-list li:last-child {
+    border-bottom: none;
+}
+
+.grid-container {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    padding: 1rem;
+}
+
+.clues-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.across-clues,
+.down-clues {
+    background-color: #f5f5f5;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.across-clues h3,
+.down-clues h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+#across-clues,
+#down-clues {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#across-clues li,
+#down-clues li {
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+#across-clues li:hover,
+#down-clues li:hover {
+    background-color: #e9ecef;
+}
+
+#across-clues li.selected,
+#down-clues li.selected {
+    background-color: #e3f2fd;
+}
+
+.row-numbers, .col-numbers {
+    position: absolute;
+    display: flex;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.row-numbers {
+    left: -25px;
+    top: 0;
+    flex-direction: column;
+    height: 100%;
+}
+
+.col-numbers {
+    top: -25px;
+    left: 0;
+    width: 100%;
+}
+
+.row-number, .col-number {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#crossword-grid {
+    display: grid;
+    gap: 1px;
+    background-color: #000;
+    padding: 1px;
+    border: 2px solid #2c3e50;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.cell.black {
+    background-color: #000;
+}
+
+.cell.highlighted {
+    background-color: #fff3e0;
+}
+
+.cell.selected {
+    background-color: #e3f2fd;
+}
+
+.cell input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    cursor: pointer;
+}
+
+.cell input:focus {
+    background-color: #e3f2fd;
+}
+
+.cell input:disabled {
+    background-color: transparent;
+    cursor: not-allowed;
+}
+
+.cell-number {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    font-size: 10px;
+    color: #666;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.cell.black {
+    background-color: #000;
+}
+
+.cell.selected {
+    background-color: #e3f2fd;
+}
+
+.cell.highlighted {
+    background-color: #fff3e0;
+}
+
+.cell input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: transparent;
+}
+
+.cell input:focus {
+    outline: none;
+}
+
+.cell-number {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    font-size: 10px;
+    color: #666;
+}
+
+.clues-container h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.2em;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+.clues-container ol {
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+.clues-container li {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.clues-container li:hover {
+    background-color: #f5f5f5;
+}
+
+.clues-container li.active {
+    background-color: #e3f2fd;
+}
+
+.clues-container li.completed {
+    color: #4caf50;
+    text-decoration: line-through;
+}
+
+.players-section {
+    width: 250px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.players-section h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.2em;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+#players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.player-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+}
+
+.player-item.current {
+    background-color: #e3f2fd;
+}
+
+.player-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc;
+}
+
+.player-status.active {
+    background-color: #4caf50;
+}
+
+.game-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.game-info span {
+    padding: 0.5rem 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    background-color: #ff4444;
+    color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+    animation: slideIn 0.3s ease-out;
+}
+
+.error-message.fade-out {
+    animation: fadeOut 0.5s ease-out forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.time-warning {
+    color: #ff4444;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+} 
