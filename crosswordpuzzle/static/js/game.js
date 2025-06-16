@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function initGame() {
         fetchPuzzleData();
         // Poll for updates every 5 seconds
-        setInterval(fetchPuzzleData, 5000);
+        setInterval(fetchPuzzleData, 10000);
     }
 
     // Fetch puzzle data from server
