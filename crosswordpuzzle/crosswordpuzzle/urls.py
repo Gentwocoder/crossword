@@ -13,6 +13,6 @@ def ip_restriction_middleware(get_response):
     return middleware
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('superadmin/', admin.site.urls),
     path('', include('crossword.urls')),
 ]
