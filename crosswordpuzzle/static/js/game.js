@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameData.status === 'waiting') {
             waitingRoom.classList.remove('hidden');
             gameBoard.classList.add('hidden');
-            updatePlayersList();
+            updatePlayerList();
             updateStartButton();
         } else {
             waitingRoom.classList.add('hidden');
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         //Update player list
-        updatePlayerList();
+        // updatePlayerList();
 
         // Update timer if game is in progress
         if (gameData.status === 'in_progress' && gameData.time_remaining !== null) {
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStartButton() {
         if (!startGameBtn || !gameData || !gameData.players) return;
         // The creator is the first player in the list
-        isCreator = gameData.players.length > 0 && (string(gameData.players[0].id) === string(playerId) || string(gameData.players[0].player_id) === string(playerId));
+        isCreator = gameData.players.length > 0 && (gameData.players[0].id === playerId || gameData.players[0].player_id === playerId);
         console.log(`Is creator: ${isCreator}`);
         startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
         startGameBtn.disabled = false;
