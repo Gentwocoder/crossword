@@ -1,4 +1,3 @@
-import { showLoading, hideLoading } from '../game.js';
 document.addEventListener('DOMContentLoaded', () => {
     // Get elements
     const waitingRoom = document.getElementById('waiting-room');
@@ -33,6 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedDirection = 'across';
     let timerInterval = null;
     let isCreator = false;
+    let isLoading = false;
+
+    function showLoading() {
+        isLoading = true;
+        loadingIndicator.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        isLoading = false;
+        loadingIndicator.style.display = 'none';
+    }
 
     // Initialize game
     function initGame() {
