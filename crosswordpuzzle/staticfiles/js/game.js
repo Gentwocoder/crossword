@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const acrossClues = document.getElementById('across-clues');
     const downClues = document.getElementById('down-clues');
     const gameStatus = document.getElementById('game-status');
+    
 
     // Get puzzle code from session storage
     const puzzleCode = sessionStorage.getItem('puzzleCode');
@@ -33,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval = null;
     let isCreator = false;
     let isLoading = false;
+    let puzzle = null;
+    let selectedClue = null;
+    let currentDirection = 'across';
+    let playerAnswers = {}; // Store player's answers
 
     const loadingIndicator = document.createElement('div');
     loadingIndicator.className = 'loading-indicator';
