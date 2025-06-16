@@ -1,4 +1,3 @@
-export {showLoading, hideLoading}
 document.addEventListener('DOMContentLoaded', function() {
     // Get player info from session storage
     const playerId = sessionStorage.getItem('playerId');
@@ -155,28 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Failed to initialize game:', error);
             showError('Failed to initialize game. Please refresh the page.');
             throw error; // Re-throw to prevent further execution
-        }
-    }
-
-    async function handleStartGame() {
-        try {
-            const response = await fetch(`/api/puzzle/${puzzleCode}/start/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to start game');
-            }
-
-            const data = await response.json();
-            updateGameState(data);
-        } catch (error) {
-            console.error('Error starting game:', error);
-            showError('Failed to start game. Please try again.');
         }
     }
 
