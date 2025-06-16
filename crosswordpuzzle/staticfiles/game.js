@@ -1,3 +1,4 @@
+export {showLoading, hideLoading}
 document.addEventListener('DOMContentLoaded', function() {
     // Get player info from session storage
     const playerId = sessionStorage.getItem('playerId');

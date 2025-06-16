@@ -1,3 +1,4 @@
+import { showLoading, hideLoading } from '../game.js';
 document.addEventListener('DOMContentLoaded', () => {
     // Get elements
     const waitingRoom = document.getElementById('waiting-room');
