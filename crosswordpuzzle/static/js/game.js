@@ -151,7 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!startGameBtn || !gameData || !gameData.players) return;
         // The creator is the first player in the list
         isCreator = gameData.players.length > 0 && (gameData.players[0].id === playerId || gameData.players[0].player_id === playerId);
-        console.log('Is creator:', isCreator);
         startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
         startGameBtn.disabled = false;
 
