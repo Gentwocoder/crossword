@@ -191,10 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
             gameStatus.textContent = `Status: ${gameData.status}`;
         }
 
-<<<<<<< HEAD
-        //Update player list
-        // updatePlayerList();
-=======
         // Show/hide start button for creator
         if (startGameBtn) {
             // Check if current player is the creator (first player)
@@ -204,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update player list
         updatePlayerList();
->>>>>>> parent of 468f063 (start game)
 
         // Update timer if game is in progress
         if (gameData.status === 'in_progress' && gameData.time_remaining !== null) {
@@ -252,11 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isCreator = currentPlayer && currentPlayer.is_creator;
         startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
         startGameBtn.disabled = false;
-<<<<<<< HEAD
-}
-=======
     }
->>>>>>> parent of 468f063 (start game)
 
     // Update game board
     function updateGameBoard() {
