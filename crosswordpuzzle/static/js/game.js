@@ -108,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
             gameStatus.textContent = `Status: ${gameData.status}`;
         }
 
-        // Update player list
-        // updatePlayerList();
+        //Update player list
+        updatePlayerList();
 
         // Update timer if game is in progress
         if (gameData.status === 'in_progress' && gameData.time_remaining !== null) {
@@ -150,7 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStartButton() {
         if (!startGameBtn || !gameData || !gameData.players) return;
         // The creator is the first player in the list
-        isCreator = gameData.players.length > 0 && (gameData.players[0].id === playerId || gameData.players[0].player_id === playerId);
+        isCreator = gameData.players.length > 0 && (string(gameData.players[0].id) === string(playerId) || string(gameData.players[0].player_id) === string(playerId));
+        console.log(`Is creator: ${isCreator}`);
         startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
         startGameBtn.disabled = false;
 
