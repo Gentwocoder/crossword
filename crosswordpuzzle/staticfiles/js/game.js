@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function initGame() {
         fetchPuzzleData();
         // Poll for updates every 5 seconds
-        setInterval(fetchPuzzleData, 5000);
+        setInterval(fetchPuzzleData, 10000);
     }
 
     // Fetch puzzle data from server
@@ -148,9 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update start game button visibility
     function updateStartButton() {
-        // Show start button only for the first player (creator)
-        isCreator = gameData.players.length > 0 && gameData.players[0].id === playerId;
-        startGameBtn.style.display = gameData.status === 'waiting' && isCreator ? 'block' : 'none';
+        if (!startGameBtn || !gameData || !gameData.players) return;
+        // The creator is the first player in the list
+        isCreator = gameData.players.length > 0 && (gameData.players[0].id === playerId || gameData.players[0].player_id === playerId);
+        startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
+        startGameBtn.disabled = false;
     }
 
     // Update game board
@@ -411,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDisplay();
 
         // Update every second
-        timerInterval = setInterval(updateDisplay, 1000);
+        timerInterval = setInterval(updateDisplay, 5000);
     }
 
     // Start game button click handler
