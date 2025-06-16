@@ -54,43 +54,109 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingIndicator.style.display = 'none';
     }
 
-    // Initialize game
-    function initGame() {
-        fetchPuzzleData(); // Show loader on first load
-        initializeGrid();
-        initializeClues();
-        // Poll for updates every 5 seconds without showing loader
-        setInterval(() => fetchPuzzleData(true), 5000);
-    }
-
     // Fetch puzzle data from server
     // Modify fetchPuzzleData to accept a 'silent' parameter
-    function fetchPuzzleData(silent = false) {
+    // async function fetchPuzzleData(silent = false) {
+    //     if (!silent) showLoading();
+    //     fetch(`/api/puzzle/${puzzleCode}/`)
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 return response.json().then(data => {
+    //                     // If session expired or player not found, redirect to join page
+    //                     if (response.status === 401) {
+    //                         window.location.href = `/join/?code=${puzzleCode}`;
+    //                         return;
+    //                     }
+    //                     throw new Error(data.error || 'Failed to fetch puzzle data');
+    //                 });
+    //             }
+    //             return response.json();
+    //         })
+    //         .then(data => {
+    //             if (!silent) hideLoading();
+    //             gameData = data;
+    //             updateUI();
+    //         })
+    //         .catch(error => {
+    //             if (!silent) hideLoading();
+    //             showError('Failed to fetch game data.');
+    //         });
+    // }
+
+    async function fetchPuzzleData(retries = 3, silent = false) {
         if (!silent) showLoading();
-        fetch(`/api/puzzle/${puzzleCode}/`)
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        // If session expired or player not found, redirect to join page
-                        if (response.status === 401) {
-                            window.location.href = `/join/?code=${puzzleCode}`;
-                            return;
-                        }
-                        throw new Error(data.error || 'Failed to fetch puzzle data');
-                    });
+        
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await fetch(`/api/puzzle/${puzzleCode}/`, {
+                    headers: {
+                        'X-CSRFToken': getCsrfToken()
+                    }
+                });
+                if (response.status === 401) {
+                    showError('Your session has expired. Please rejoin the game.');
+                    setTimeout(() => {
+                        window.location.href = '/join/';
+                    }, 3000);
+                    if (!silent) hideLoading();
+                    throw new Error('Session expired');
                 }
-                return response.json();
-            })
-            .then(data => {
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to fetch puzzle data');
+                }
+                const data = await response.json();
                 if (!silent) hideLoading();
-                gameData = data;
-                updateUI();
-            })
-            .catch(error => {
-                if (!silent) hideLoading();
-                showError('Failed to fetch game data.');
-            });
+                return data;
+            } catch (error) {
+                console.error('Error fetching puzzle:', error);
+                if (i === retries - 1) {
+                    if (!silent) hideLoading();
+                    showError('Failed to load puzzle. Please refresh the page.');
+                    throw error;
+                }
+                // Wait before retrying (exponential backoff)
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+            }
+        }
     }
+
+     function getCsrfToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Initialize game
+    async function initGame() {
+        try {
+            puzzle = await fetchPuzzleData();
+            
+            if (!puzzle) {
+                throw new Error('Failed to fetch puzzle data');
+            }
+        initializeGrid();
+        initializeClues();
+        updateUI();
+        // Poll for updates every 5 seconds without showing loader
+        setInterval(() => fetchPuzzleData(true), 5000);
+        } catch (error) {
+            console.error('Failed to initialize game:', error);
+            showError('Failed to initialize game. Please refresh the page.');
+            throw error; // Re-throw to prevent further execution
+        }
+    }
+
 
     // Update UI based on game state
     function updateUI() {
@@ -143,15 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Update players list in waiting room
-    function updatePlayersList() {
-        playersList.innerHTML = '';
-        gameData.players.forEach(player => {
-            const li = document.createElement('li');
-            li.textContent = player.name;
-            playersList.appendChild(li);
-        });
-    }
 
     // Update start game button visibility
     // function updateStartButton() {
