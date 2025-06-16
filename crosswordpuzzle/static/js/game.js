@@ -147,15 +147,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update start game button visibility
+    // function updateStartButton() {
+    //     if (!startGameBtn || !gameData || !gameData.players) return;
+    //     // The creator is the first player in the list
+    //     isCreator = gameData.players.length > 0 && (gameData.players[0].id === playerId || gameData.players[0].player_id === playerId);
+    //     console.log(`Is creator: ${isCreator}`);
+    //     startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
+    //     startGameBtn.disabled = false;
+
+    // }
+
     function updateStartButton() {
         if (!startGameBtn || !gameData || !gameData.players) return;
-        // The creator is the first player in the list
-        isCreator = gameData.players.length > 0 && (string(gameData.players[0].id) === string(playerId) || string(gameData.players[0].player_id) === string(playerId));
-        console.log(`Is creator: ${isCreator}`);
+         // Find the current player in the list
+        const currentPlayer = gameData.players.find(
+            p => String(p.id) === String(playerId) || String(p.player_id) === String(playerId)
+        );
+        const isCreator = currentPlayer && currentPlayer.is_creator;
         startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
         startGameBtn.disabled = false;
-
-    }
+}
 
     // Update game board
     function updateGameBoard() {
