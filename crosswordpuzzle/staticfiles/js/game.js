@@ -34,6 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let isCreator = false;
     let isLoading = false;
 
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'loading-indicator';
+    loadingIndicator.innerHTML = '<div class="spinner"></div>';
+    document.body.appendChild(loadingIndicator);
+
     function showLoading() {
         isLoading = true;
         loadingIndicator.style.display = 'flex';
