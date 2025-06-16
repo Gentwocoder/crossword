@@ -413,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDisplay();
 
         // Update every second
-        timerInterval = setInterval(updateDisplay, 5000);
+        timerInterval = setInterval(updateDisplay, 1000);
     }
 
     // Start game button click handler
