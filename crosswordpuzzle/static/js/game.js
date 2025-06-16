@@ -366,14 +366,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update leaderboard
     function updateLeaderboard() {
+        // const leaderboardList = document.getElementById('leaderboard-list');
+        if (!leaderboardList || !gameData || !gameData.players) return;
+        // Clear current leaderboard
         leaderboardList.innerHTML = '';
         const sortedPlayers = [...gameData.players].sort((a, b) => b.points - a.points);
         sortedPlayers.forEach(player => {
             const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${player.name}</span>
-                <span>${player.points} points</span>
-            `;
+            li.className= 'leaderboard-item';
+            // Add player rank
+            const rankSpan = document.createElement('span');
+            rankSpan.className = 'player-rank';
+            const rank = sortedPlayers.indexOf(player) + 1;
+            rankSpan.textContent = `#${rank}`;
+            
+            // Add player name
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'player-name';
+            nameSpan.textContent = player.display_name || player.name || 'Unnamed';
+            
+            // Add points
+            const pointsSpan = document.createElement('span');
+            pointsSpan.className = 'player-points';
+            pointsSpan.textContent = `${player.points} points`;
+            
+            li.appendChild(rankSpan);
+            li.appendChild(nameSpan);
+            li.appendChild(pointsSpan);
             leaderboardList.appendChild(li);
         });
     }
