@@ -94,11 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Show/hide start button for creator
-        if (startGameBtn) {
-            // Check if current player is the creator (first player)
-            isCreator = gameData.players.length > 0 && gameData.players[0].id === playerId;
-            startGameBtn.style.display = gameData.status === 'waiting' && isCreator ? 'block' : 'none';
-        }
+        // if (startGameBtn) {
+        //     // Check if current player is the creator (first player)
+        //     isCreator = gameData.players.length > 0 && gameData.players[0].id === playerId;
+        //     startGameBtn.style.display = gameData.status === 'waiting' && isCreator ? 'block' : 'none';
+        // }
 
         // Update player list
         updatePlayerList();
@@ -142,9 +142,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStartButton() {
         if (!startGameBtn || !gameData || !gameData.players) return;
         // The creator is the first player in the list
-        isCreator = gameData.players.length > 0 && (gameData.players[0].id === playerId || gameData.players[0].player_id === playerId);
-        startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
-        startGameBtn.disabled = false;
+        const isCreator = gameData.players.find(player => player.is_creator);
+        // Check if the current player is the creator
+        if (isCreator && isCreator.id === playerId) {
+            startGameBtn.style.display = (gameData.status === 'waiting') ? 'block' : 'none';
+            startGameBtn.disabled = false;
+        }
+        // isCreator = gameData.players.length > 0 && (gameData.players[0].id === playerId || gameData.players[0].player_id === playerId);
+        // startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
+        // startGameBtn.disabled = false;
     }
 
     // Update game board
