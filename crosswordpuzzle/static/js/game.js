@@ -54,6 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingIndicator.style.display = 'none';
     }
 
+    // Initialize game
+    function initGame() {
+        fetchPuzzleData(); // Show loader on first load
+        // Poll for updates every 5 seconds without showing loader
+        setInterval(() => fetchPuzzleData(true), 5000);
+    }
+
     // Fetch puzzle data from server
     // Modify fetchPuzzleData to accept a 'silent' parameter
     // async function fetchPuzzleData(silent = false) {
@@ -181,7 +188,14 @@ document.addEventListener('DOMContentLoaded', () => {
             gameStatus.textContent = `Status: ${gameData.status}`;
         }
 
-        //Update player list
+        // Show/hide start button for creator
+        if (startGameBtn) {
+            // Check if current player is the creator (first player)
+            isCreator = gameData.players.length > 0 && gameData.players[0].id === playerId;
+            startGameBtn.style.display = gameData.status === 'waiting' && isCreator ? 'block' : 'none';
+        }
+
+        // Update player list
         // updatePlayerList();
 
         // Update timer if game is in progress
@@ -230,7 +244,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const isCreator = currentPlayer && currentPlayer.is_creator;
         startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
         startGameBtn.disabled = false;
-}
+        console.log("playerId:", playerId);
+        console.log("gameData.players[0]:", gameData.players[0]);
+        console.log("isCreator:", isCreator);
+        console.log("gameData.status:", gameData.status);
+
+    }
 
     // Update game board
     function updateGameBoard() {
