@@ -170,10 +170,10 @@ def join_puzzle(request):
         puzzle=puzzle
     )
 
-    if puzzle.status == 'waiting' and puzzle.start_time is None:
-        puzzle.start_time = timezone.now() + timedelta(seconds=30)
-        puzzle.save(update_fields=['start_time'])
-        logger.info(f"First player joined. Game will start at: {puzzle.start_time}")
+    # if puzzle.status == 'waiting' and puzzle.start_time is None:
+    #     puzzle.start_time = timezone.now() + timedelta(seconds=30)
+    #     puzzle.save(update_fields=['start_time'])
+    #     logger.info(f"First player joined. Game will start at: {puzzle.start_time}")
 
     # Set session expiry to puzzle duration plus 10 minutes buffer
     request.session['player_id'] = str(player.id)
@@ -191,12 +191,6 @@ def get_puzzle(request, code):
     puzzle = CrosswordPuzzle.objects.filter(code=code).first()
     if not puzzle:
         raise Http404('Puzzle not found')
-
-    # Check if game should auto-start
-    if puzzle.status == 'waiting' and puzzle.start_time and timezone.now() >= puzzle.start_time:
-        puzzle.start_game()
-        logger.info(f"Game auto-started: code={code}, current_time={timezone.now()}")
-
     # Mark game as completed if timer has run out
     if puzzle.status == 'in_progress' and puzzle.time_remaining == 0:
         puzzle.end_game()
@@ -212,8 +206,7 @@ def get_puzzle(request, code):
         'time_remaining': puzzle.time_remaining,
         'players': list(players),
         'player_id': str(request.player.id),
-        'solved_words': solved_words,
-        'start_time': puzzle.start_time.isoformat() if puzzle.start_time else None
+        'solved_words': solved_words
     })
 
 @ensure_csrf_cookie
