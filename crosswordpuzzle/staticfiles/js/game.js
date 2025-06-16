@@ -741,4 +741,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize the game
     initGame();
-}); 
+});

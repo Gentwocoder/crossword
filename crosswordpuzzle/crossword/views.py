@@ -102,7 +102,7 @@ def game(request, code):
         'player_name': player.display_name,
         'game_status': puzzle.status,
         'duration': puzzle.duration,
-        'start_time': puzzle.start_time.isoformat() if puzzle.start_time else None
+        'start_time': puzzle.start_time.isoformat() if puzzle.status == 'in_progress' and puzzle.start_time else None
     }
     return render(request, 'game.html', context)
 
