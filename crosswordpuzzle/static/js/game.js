@@ -35,13 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize game
     function initGame() {
-        fetchPuzzleData();
-        // Poll for updates every 5 seconds
-        setInterval(fetchPuzzleData, 10000);
+        fetchPuzzleData(); // Show loader on first load
+        // Poll for updates every 10 seconds without showing loader
+        setInterval(() => fetchPuzzleData(true), 10000);
     }
 
     // Fetch puzzle data from server
-    function fetchPuzzleData() {
+    // Modify fetchPuzzleData to accept a 'silent' parameter
+    function fetchPuzzleData(silent = false) {
+        if (!silent) showLoading();
         fetch(`/api/puzzle/${puzzleCode}/`)
             .then(response => {
                 if (!response.ok) {
@@ -57,24 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return response.json();
             })
             .then(data => {
-                if (!data) return; // Skip if we're redirecting
-                
-                if (data.error) {
-                    console.error('Error:', data.error);
-                    showError(data.error);
-                    return;
-                }
-
-                // Debug logs
-                console.log('Game data:', data);
-                console.log('Time remaining:', data.time_remaining);
-
+                if (!silent) hideLoading();
                 gameData = data;
                 updateUI();
             })
             .catch(error => {
-                console.error('Error:', error);
-                showError(error.message || 'Failed to load puzzle data. Please refresh the page.');
+                if (!silent) hideLoading();
+                showError('Failed to fetch game data.');
             });
     }
 
@@ -691,55 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Select a cell
-    function selectCell(cell) {
-        selectedCell = cell;
-        const row = parseInt(cell.dataset.row);
-        const col = parseInt(cell.dataset.col);
-
-        // Find the word that contains this cell
-        const word = findWordAtPosition(row, col);
-        if (word) {
-            selectedWord = word;
-            selectedDirection = word.direction;
-            highlightWord(word);
-        }
-    }
-
-    // Find word at position
-    function findWordAtPosition(row, col) {
-        if (!gameData || !gameData.words) return null;
-
-        return gameData.words.find(word => {
-            if (word.direction === 'across') {
-                return word.start_row === row && 
-                       col >= word.start_col && 
-                       col < word.start_col + word.word.length;
-            } else {
-                return word.start_col === col && 
-                       row >= word.start_row && 
-                       row < word.start_row + word.word.length;
-            }
-        });
-    }
-
-    // Highlight a word
-    function highlightWord(word) {
-        // Remove previous highlights
-        document.querySelectorAll('.cell.highlighted').forEach(cell => {
-            cell.classList.remove('highlighted');
-        });
-
-        // Add highlights to new word
-        for (let i = 0; i < word.word.length; i++) {
-            const row = word.direction === 'across' ? word.start_row : word.start_row + i;
-            const col = word.direction === 'across' ? word.start_col + i : word.start_col;
-            const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-            if (cell) {
-                cell.classList.add('highlighted');
-            }
-        }
-    }
+    // (Removed duplicate selectCell, findWordAtPosition, and highlightWord functions to resolve conflicts)
 
     // Initialize the game
     initGame();
