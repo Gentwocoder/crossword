@@ -198,7 +198,7 @@ def get_puzzle(request, code):
     if puzzle.status == 'waiting':
         if not puzzle.waiting_room_start_time:
             puzzle.waiting_room_start_time = timezone.now()
-            puzzle.save()
+            puzzle.save(update_fields=['waiting_room_start_time'])
         else:
             elapsed = (timezone.now() - puzzle.waiting_room_start_time).total_seconds()
             if elapsed >= 40:
