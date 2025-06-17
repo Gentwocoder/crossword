@@ -514,11 +514,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const gameBoard = document.getElementById('game-board');
         if (waitingRoom && gameBoard) {
             if (data.status === 'waiting') {
-                // waitingRoom.classList.remove('hidden');
-                // gameBoard.classList.add('hidden');
+                waitingRoom.classList.remove('hidden');
                 if (!waitingRoomTimerStarted) {
                     startWaitingRoomTimer();
                 }
+                gameBoard.classList.add('hidden');
+                
                 updateStartButton();
  
             } else {
@@ -570,12 +571,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (waitingRoomSeconds <= 0) {
                 clearWaitingRoomTimer();
                 // Redirect to game board or trigger game start
-                const waitingRoom = document.getElementById('waiting-room');
-                const gameBoard = document.getElementById('game-board');
+                // const waitingRoom = document.getElementById('waiting-room');
+                // const gameBoard = document.getElementById('game-board');
             
                 // Hide waiting room, show game board
-                if (waitingRoom) waitingRoom.classList.add('hidden');
-                if (gameBoard) gameBoard.classList.remove('hidden');
+                // if (waitingRoom) waitingRoom.classList.add('hidden');
+                // if (gameBoard) gameBoard.classList.remove('hidden');
             }
         }, 1000);
     }
