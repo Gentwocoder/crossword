@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isCreator = false;
     let countdownInterval = null;
     let puzzleStartTime = null;
-    let countdownStarted = false;
+    let gameStartedLocally = false;
     let timerInterval = null;
     let gameData = null;
     let waitingRoomTimer = null;
@@ -498,6 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateGameState(data) {
+        gameData = data;
         // Update game status
         const gameStatus = document.getElementById('game-status');
         
@@ -520,11 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     startWaitingRoomTimer();
                 }
                 updateStartButton();
-                // Start countdown only once
-                // if (puzzleStartTime && !countdownStarted) {
-                //     startCountdown(puzzleStartTime);
-                //     countdownStarted = true;
-               // }
+ 
             } else {
                 waitingRoom.classList.add('hidden');
                 gameBoard.classList.remove('hidden');
@@ -563,16 +560,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function startWaitingRoomTimer() {
         if (waitingRoomTimerStarted) return; // Prevent multiple timers
         clearWaitingRoomTimer();
-        waitingRoomSeconds = 40;
+
+        const serverStartTime = gameData.waiting_room_start_time ? new Date(gameData.waiting_room_start_time) : new Date();
+        const endTime = new Date(serverStartTime.getTime() + 40 * 1000); // 40 seconds from start time
+        
         waitingRoomTimerStarted = true;
         const timerDisplay = document.getElementById("waiting-room-timer");
-        if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
 
         waitingRoomTimer = setInterval(() =>{
+            const now = new Date();
+            const timeLeft = Math.max((0, Math.ceil(endTime - now) / 1000));
             waitingRoomSeconds--;
-            if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
-            if (waitingRoomSeconds <= 0) {
+            if (timerDisplay) timerDisplay.textContent = `Game will start in ${timeLeft} seconds...`;
+            if (timeLeft <= 0) {
                 clearWaitingRoomTimer();
+                gameStartedLocally = true; // Mark that the game has started locally
                 // Redirect to game board or trigger game start
                 const waitingRoom = document.getElementById('waiting-room');
                 const gameBoard = document.getElementById('game-board');

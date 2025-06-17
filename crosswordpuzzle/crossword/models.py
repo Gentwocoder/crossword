@@ -50,6 +50,7 @@ class CrosswordPuzzle(models.Model):
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting')
     start_time = models.DateTimeField(null=True, blank=True)
+    waiting_room_start_time = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     objects = CrosswordPuzzleManager()
 
@@ -64,6 +65,8 @@ class CrosswordPuzzle(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        if not self.waiting_room_start_time:
+            self.waiting_room_start_time = timezone.now()
         super().save(*args, **kwargs)
 
     def __str__(self):

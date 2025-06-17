@@ -169,6 +169,9 @@ def join_puzzle(request):
         display_name=player_name,
         puzzle=puzzle
     )
+    if puzzle.status == 'waiting' and not puzzle.waiting_room_start_time:
+        puzzle.waiting_room_start_time = timezone.now()
+        puzzle.save(update_fields=['waiting_room_start_time'])
 
     # if puzzle.status == 'waiting' and puzzle.start_time is None:
     #     puzzle.start_time = timezone.now() + timedelta(seconds=30)
@@ -191,6 +194,10 @@ def get_puzzle(request, code):
     puzzle = CrosswordPuzzle.objects.filter(code=code).first()
     if not puzzle:
         raise Http404('Puzzle not found')
+    
+    if puzzle.status == 'waiting' and not puzzle.waiting_room_start_time:
+        puzzle.waiting_room_start_time = timezone.now()
+        puzzle.save(update_fields=['waiting_room_start_time'])
     # Mark game as completed if timer has run out
     if puzzle.status == 'in_progress' and puzzle.time_remaining == 0:
         puzzle.end_game()
@@ -206,7 +213,8 @@ def get_puzzle(request, code):
         'time_remaining': puzzle.time_remaining,
         'players': list(players),
         'player_id': str(request.player.id),
-        'solved_words': solved_words
+        'solved_words': solved_words,
+        'waiting_room_start_time': puzzle.waiting_room_start_time.isoformat() if puzzle.waiting_room_start_time else None
     })
 
 @ensure_csrf_cookie
