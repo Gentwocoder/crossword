@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Check if the answer is correct
-        if (answer === word.word) {
+        if (answer.length === word.word.length) {
             // Mark the word as completed
             const clue = document.querySelector(
                 `.clues-container li[data-direction="${word.direction}"][data-start-row="${word.start_row}"][data-start-col="${word.start_col}"]`
@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Update player's answers
-            playerAnswers[`${word.direction}-${word.start_row}-${word.start_col}`] = answer;
+            submitWordToServer(answer, word);
         }
     }
 
@@ -574,11 +574,26 @@ document.addEventListener('DOMContentLoaded', function() {
             if (waitingRoomSeconds <= 0) {
                 clearWaitingRoomTimer();
                 // Redirect to game board or trigger game start
-                window.location.href = `api/puzzle/${puzzleCode}/start/`
-                // If you want to auto-start the game as the creator:
-                if (isCreator) {
-                    startGameBtn.click();
-                }
+                fetch(`/api/puzzle/${puzzleCode}/start/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+
+                        showError(data.error);
+                    } else {
+                        showError("Game started!", 2000)
+                    }
+                })
+                .catch(error => {
+                    showError("Failed to start game")
+                });
+
             }
         }, 1000);
     }
@@ -830,6 +845,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             showError('Error submitting word.');
+        }
+    }
+
+    function updatePlayerScore(points) {
+        // Update the current player's score in the UI
+        const currentPlayerScore = document.querySelector('.player-item.current .player-score');
+        if (currentPlayerScore) {
+            const currentPoints = parseInt(currentPlayerScore.textContent.match(/\d+/) || 0);
+            currentPlayerScore.textContent = `Score: ${currentPoints + points}`;
         }
     }
 }); 
