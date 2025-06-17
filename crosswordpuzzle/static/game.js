@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isLoading) return; // Skip if already loading
 
             try {
-                const data = await fetchPuzzleData();
+                const data = await fetchPuzzleData(3, true);
                 updateGameState(data);
             } catch (error) {
                 console.error('Polling error:', error);
