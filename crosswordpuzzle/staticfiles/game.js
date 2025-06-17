@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let countdownInterval = null;
     let puzzleStartTime = null;
     let countdownStarted = false;
+    let timerInterval = null;
+    let gameData = null;
 
     // Add loading indicator
     const loadingIndicator = document.createElement('div');
@@ -89,8 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Fetch puzzle data with retry logic
-    async function fetchPuzzleData(retries = 3) {
-        showLoading();
+    async function fetchPuzzleData(retries = 3, silent = false) {
+        if (!silent) showLoading();
         
         for (let i = 0; i < retries; i++) {
             try {
@@ -104,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         window.location.href = '/join/';
                     }, 3000);
-                    hideLoading();
+                    if (!silent) hideLoading();
                     throw new Error('Session expired');
                 }
                 if (!response.ok) {
@@ -112,12 +114,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(error.error || 'Failed to fetch puzzle data');
                 }
                 const data = await response.json();
-                hideLoading();
+                if (!silent) hideLoading();
                 return data;
             } catch (error) {
                 console.error('Error fetching puzzle:', error);
                 if (i === retries - 1) {
-                    hideLoading();
+                    if (!silent) hideLoading();
                     showError('Failed to load puzzle. Please refresh the page.');
                     throw error;
                 }
@@ -529,8 +531,18 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         // Update timer if game is in progress
-        if (data.status === 'in_progress' && data.time_remaining !== null) {
-            updateTimer(data.time_remaining);
+        if (gameData.status === 'in_progress' && gameData.time_remaining !== null) {
+            updateTimer(Math.floor(gameData.time_remaining));
+        } else {
+            // Clear timer if game is not in progress
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            const timerElement = document.getElementById('timer');
+            if (timerElement) {
+                timerElement.textContent = gameData.status === 'waiting' ? 'Waiting to start...' : 'Game Over';
+                timerElement.classList.remove('warning');
+            }
         }
     }
 
@@ -546,17 +558,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function updateTimer(timeRemaining) {
+     function updateTimer(seconds) {
         const timerElement = document.getElementById('timer');
         if (!timerElement) return;
 
-        const minutes = Math.floor(timeRemaining / 60);
-        const seconds = Math.floor(timeRemaining % 60);
-        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-        if (timeRemaining <= 300) { // 5 minutes
-            timerElement.classList.add('time-warning');
+        // Clear any existing interval
+        if (timerInterval) {
+            clearInterval(timerInterval);
         }
+
+        // Only run timer if seconds is a valid number
+        if (typeof seconds !== 'number' || isNaN(seconds) || seconds < 0) {
+            timerElement.textContent = '--:--';
+            timerElement.classList.remove('warning');
+            return;
+        }
+
+        // Format time as MM:SS
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Update timer display
+        function updateDisplay() {
+            if (seconds <= 0) {
+                clearInterval(timerInterval);
+                timerElement.textContent = 'Time\'s up!';
+                timerElement.classList.add('warning');
+                return;
+            }
+            timerElement.textContent = `Time Remaining: ${formatTime(seconds)}`;
+            
+            // Add warning class when less than 1 minute remains
+            if (seconds <= 60) {
+                timerElement.classList.add('warning');
+            } else {
+                timerElement.classList.remove('warning');
+            }
+            
+            seconds--;
+        }
+
+        // Initial update
+        updateDisplay();
+
+        // Update every second
+        timerInterval = setInterval(updateDisplay, 1000);
     }
 
     function updatePlayersList(playersList) {
