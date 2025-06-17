@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const puzzleCodeElement = document.getElementById('puzzle-code');
     const playerNameElement = document.getElementById('player-name');
     const gameStatusElement = document.getElementById('game-status');
+    const leaderboardList = document.getElementById('leaderboard-list');
+    const startGameBtn = document.getElementById('start-game-btn');
     
     if (puzzleCodeElement) puzzleCodeElement.textContent = `Puzzle Code: ${puzzleCode}`;
     if (playerNameElement) playerNameElement.textContent = `Player: ${playerName}`;
@@ -508,15 +510,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'waiting') {
                 waitingRoom.classList.remove('hidden');
                 gameBoard.classList.add('hidden');
+                updateStartButton();
                 // Start countdown only once
-                if (puzzleStartTime && !countdownStarted) {
-                    startCountdown(puzzleStartTime);
-                    countdownStarted = true;
-                }
+                // if (puzzleStartTime && !countdownStarted) {
+                //     startCountdown(puzzleStartTime);
+                //     countdownStarted = true;
+               // }
             } else {
                 waitingRoom.classList.add('hidden');
                 gameBoard.classList.remove('hidden');
-                stopCountdown();
+                updateLeaderboard();
+                updateTimer();
             }
         }
         // Update player list
@@ -546,6 +550,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Update leaderboard
+    function updateLeaderboard() {
+        // const leaderboardList = document.getElementById('leaderboard-list');
+        if (!leaderboardList || !gameData || !gameData.players) return;
+        // Clear current leaderboard
+        leaderboardList.innerHTML = '';
+        const sortedPlayers = [...gameData.players].sort((a, b) => b.points - a.points);
+        sortedPlayers.forEach(player => {
+            const li = document.createElement('li');
+            li.className= 'leaderboard-item';
+            // Add player rank
+            const rankSpan = document.createElement('span');
+            rankSpan.className = 'player-rank';
+            const rank = sortedPlayers.indexOf(player) + 1;
+            rankSpan.textContent = `#${rank}`;
+            
+            // Add player name
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'player-name';
+            nameSpan.textContent = player.display_name || player.name || 'Unnamed';
+            
+            // Add points
+            const pointsSpan = document.createElement('span');
+            pointsSpan.className = 'player-points';
+            pointsSpan.textContent = `${player.points} points`;
+            
+            li.appendChild(rankSpan);
+            li.appendChild(nameSpan);
+            li.appendChild(pointsSpan);
+            leaderboardList.appendChild(li);
+        });
+    }
+
+    function updateStartButton() {
+        if (!startGameBtn || !gameData || !gameData.players) return;
+        // The creator is the first player in the list
+        const isCreator = gameData.players.find(player => player.is_creator);
+        // Check if the current player is the creator
+        if (isCreator && isCreator.id === playerId) {
+            startGameBtn.style.display = (gameData.status === 'waiting') ? 'block' : 'none';
+            startGameBtn.disabled = false;
+        }
+        // isCreator = gameData.players.length > 0 && (gameData.players[0].id === playerId || gameData.players[0].player_id === playerId);
+        // startGameBtn.style.display = (gameData.status === 'waiting' && isCreator) ? 'block' : 'none';
+        // startGameBtn.disabled = false;
+    }
+
     function disableWordCells(wordObj) {
         for (let i = 0; i < wordObj.word.length; i++) {
             const row = wordObj.direction === 'across' ? wordObj.start_row : wordObj.start_row + i;
@@ -558,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-     function updateTimer(seconds) {
+    function updateTimer(seconds) {
         const timerElement = document.getElementById('timer');
         if (!timerElement) return;
 
