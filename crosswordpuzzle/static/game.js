@@ -515,10 +515,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (waitingRoom && gameBoard) {
             if (data.status === 'waiting') {
                 waitingRoom.classList.remove('hidden');
+                gameBoard.classList.add('hidden');
                 if (!waitingRoomTimerStarted) {
                     startWaitingRoomTimer();
                 }
-                gameBoard.classList.add('hidden');
                 
                 updateStartButton();
  
@@ -557,37 +557,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // function startWaitingRoomTimer() {
+    //     if (waitingRoomTimerStarted) return; // Prevent multiple timers
+    //     clearWaitingRoomTimer();
+
+    //     waitingRoomSeconds = 40;
+    //     waitingRoomTimerStarted = true;
+    //     const timerDisplay = document.getElementById("waiting-room-timer");
+    //     if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
+
+    //     waitingRoomTimer = setInterval(() =>{
+    //         waitingRoomSeconds--;
+    //         if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
+    //         if (waitingRoomSeconds <= 0) {
+    //             clearWaitingRoomTimer();
+    //         }
+    //     }, 1000);
+    // }
+
     function startWaitingRoomTimer() {
-        if (waitingRoomTimerStarted) return; // Prevent multiple timers
+        if (waitingRoomTimerStarted) return;
+
+        if (!gameData || !gameData.waiting_room_start_time) return;
+
         clearWaitingRoomTimer();
-        waitingRoomSeconds = 40;
+
         waitingRoomTimerStarted = true;
         const timerDisplay = document.getElementById("waiting-room-timer");
-        if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
+    
+        const startTime = new Date(gameData.waiting_room_start_time);
+        const countdownDuration = 40; // seconds
+        const endTime = new Date(startTime.getTime() + countdownDuration * 1000);
 
-        waitingRoomTimer = setInterval(() =>{
-            waitingRoomSeconds--;
-            if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
-            if (waitingRoomSeconds <= 0) {
-                clearWaitingRoomTimer();
-                // Redirect to game board or trigger game start
-                // const waitingRoom = document.getElementById('waiting-room');
-                // const gameBoard = document.getElementById('game-board');
-            
-                // Hide waiting room, show game board
-                // if (waitingRoom) waitingRoom.classList.add('hidden');
-                // if (gameBoard) gameBoard.classList.remove('hidden');
+        function updateTimer() {
+            const now = new Date();
+            const secondsLeft = Math.max(0, Math.ceil((endTime - now) / 1000));
+
+            if (timerDisplay) {
+                timerDisplay.textContent = `Game will start in ${secondsLeft} second${secondsLeft !== 1 ? 's' : ''}...`;
             }
-        }, 1000);
+
+            if (secondsLeft <= 0) {
+                clearWaitingRoomTimer();
+                // Trigger backend to move game to in_progress (see step 3)
+            }
+        }
+
+        updateTimer();
+        waitingRoomTimer = setInterval(updateTimer, 1000);
     }
 
-        function clearWaitingRoomTimer() {
-            if (waitingRoomTimer) {
-                clearInterval(waitingRoomTimer);
-                waitingRoomTimer = null;
-            }
-            waitingRoomTimerStarted = false;
+
+    function clearWaitingRoomTimer() {
+        if (waitingRoomTimer) {
+            clearInterval(waitingRoomTimer);
+            waitingRoomTimer = null;
         }
+        waitingRoomTimerStarted = false;
+    }
 
     // Update leaderboard
     function updateLeaderboard() {

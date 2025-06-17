@@ -195,9 +195,15 @@ def get_puzzle(request, code):
     if not puzzle:
         raise Http404('Puzzle not found')
     
-    if puzzle.status == 'waiting' and not puzzle.waiting_room_start_time:
-        puzzle.waiting_room_start_time = timezone.now()
-        puzzle.save()
+    if puzzle.status == 'waiting':
+        if not puzzle.waiting_room_start_time:
+            puzzle.waiting_room_start_time = timezone.now()
+            puzzle.save()
+        else:
+            elapsed = (timezone.now() - puzzle.waiting_room_start_time).total_seconds()
+            if elapsed >= 40:
+                puzzle.start_game()
+
     # Mark game as completed if timer has run out
     if puzzle.status == 'in_progress' and puzzle.time_remaining == 0:
         puzzle.end_game()
