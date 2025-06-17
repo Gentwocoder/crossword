@@ -574,7 +574,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (waitingRoomSeconds <= 0) {
                 clearWaitingRoomTimer();
                 // Redirect to game board or trigger game start
-
+                const waitingRoom = document.getElementById('waiting-room');
+                const gameBoard = document.getElementById('game-board');
+            
+                // Hide waiting room, show game board
+                if (waitingRoom) waitingRoom.classList.add('hidden');
+                if (gameBoard) gameBoard.classList.remove('hidden');
             }
         }, 1000);
     }
