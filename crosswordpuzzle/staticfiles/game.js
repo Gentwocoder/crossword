@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let gameData = null;
     let waitingRoomTimer = null;
     let waitingRoomSeconds = 40;
+    let waitingRoomTimerStarted = false;
 
     // Add loading indicator
     const loadingIndicator = document.createElement('div');
@@ -515,7 +516,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'waiting') {
                 waitingRoom.classList.remove('hidden');
                 gameBoard.classList.add('hidden');
-                startWaitingRoomTimer();
+                if (!waitingRoomTimerStarted) {
+                    startWaitingRoomTimer();
+                }
                 updateStartButton();
                 // Start countdown only once
                 // if (puzzleStartTime && !countdownStarted) {
@@ -558,31 +561,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function startWaitingRoomTimer() {
-            clearWaitingRoomTimer();
-            waitingRoomSeconds = 40;
-            const timerDisplay = document.getElementById("waiting-room-timer");
-            if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
+        if (waitingRoomTimerStarted) return; // Prevent multiple timers
+        clearWaitingRoomTimer();
+        waitingRoomSeconds = 40;
+        waitingRoomTimerStarted = true;
+        const timerDisplay = document.getElementById("waiting-room-timer");
+        if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
 
-            waitingRoomTimer = setInterval(() =>{
-                waitingRoomSeconds--;
-                if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
-                if (waitingRoomSeconds <= 0) {
-                    clearWaitingRoomTimer();
-                    // Redirect to game board or trigger game start
-                    window.location.href = `/game/${puzzleCode}`
-                    // If you want to auto-start the game as the creator:
-                    if (isCreator) {
-                        startGameBtn.click();
-                    }
+        waitingRoomTimer = setInterval(() =>{
+            waitingRoomSeconds--;
+            if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
+            if (waitingRoomSeconds <= 0) {
+                clearWaitingRoomTimer();
+                // Redirect to game board or trigger game start
+                window.location.href = `/game/${puzzleCode}`
+                // If you want to auto-start the game as the creator:
+                if (isCreator) {
+                    startGameBtn.click();
                 }
-            }, 1000);
-        }
+            }
+        }, 1000);
+    }
 
         function clearWaitingRoomTimer() {
             if (waitingRoomTimer) {
                 clearInterval(waitingRoomTimer);
                 waitingRoomTimer = null;
             }
+            waitingRoomTimerStarted = false;
         }
 
     // Update leaderboard
