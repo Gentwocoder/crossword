@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let countdownStarted = false;
     let timerInterval = null;
     let gameData = null;
+    let waitingRoomTimer = null;
+    let waitingRoomSeconds = 40;
 
     // Add loading indicator
     const loadingIndicator = document.createElement('div');
@@ -105,9 +107,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 if (response.status === 401) {
                     showError('Your session has expired. Please rejoin the game.');
-                    setTimeout(() => {
-                        window.location.href = '/join/';
-                    }, 3000);
+                    if (!silent) {
+                        setTimeout(() => {
+                            window.location.href = '/join/';
+                        }, 3000);
+                    }
                     if (!silent) hideLoading();
                     throw new Error('Session expired');
                 }
@@ -495,6 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateGameState(data) {
         // Update game status
         const gameStatus = document.getElementById('game-status');
+        
         if (gameStatus) {
             gameStatus.textContent = `Status: ${data.status}`;
         }
@@ -510,6 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'waiting') {
                 waitingRoom.classList.remove('hidden');
                 gameBoard.classList.add('hidden');
+                startWaitingRoomTimer();
                 updateStartButton();
                 // Start countdown only once
                 // if (puzzleStartTime && !countdownStarted) {
@@ -519,6 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 waitingRoom.classList.add('hidden');
                 gameBoard.classList.remove('hidden');
+                clearWaitingRoomTimer();
                 updateLeaderboard();
                 updateTimer();
             }
@@ -549,6 +556,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+
+    function startWaitingRoomTimer() {
+            clearWaitingRoomTimer();
+            waitingRoomSeconds = 40;
+            const timerDisplay = document.getElementById("waiting-room-timer");
+            if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
+
+            waitingRoomTimer = setInterval(() =>{
+                waitingRoomSeconds--;
+                if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
+                if (waitingRoomSeconds <= 0) {
+                    clearWaitingRoomTimer();
+                    // Redirect to game board or trigger game start
+                    window.location.href = `/game/${puzzleCode}`
+                    // If you want to auto-start the game as the creator:
+                    if (isCreator) {
+                        startGameBtn.click();
+                    }
+                }
+            }, 1000);
+        }
+
+        function clearWaitingRoomTimer() {
+            if (waitingRoomTimer) {
+                clearInterval(waitingRoomTimer);
+                waitingRoomTimer = null;
+            }
+        }
 
     // Update leaderboard
     function updateLeaderboard() {
