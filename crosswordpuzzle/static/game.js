@@ -574,25 +574,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (waitingRoomSeconds <= 0) {
                 clearWaitingRoomTimer();
                 // Redirect to game board or trigger game start
-                fetch(`/api/puzzle/${puzzleCode}/start/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCsrfToken()
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-
-                        showError(data.error);
-                    } else {
-                        showError("Game started!", 2000)
-                    }
-                })
-                .catch(error => {
-                    showError("Failed to start game")
-                });
 
             }
         }, 1000);
