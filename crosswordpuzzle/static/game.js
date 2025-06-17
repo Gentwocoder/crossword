@@ -535,8 +535,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         // Update timer if game is in progress
-        if (gameData.status === 'in_progress' && gameData.time_remaining !== null) {
-            updateTimer(Math.floor(gameData.time_remaining));
+        if (data.status === 'in_progress' && data.time_remaining !== null) {
+            updateTimer(Math.floor(data.time_remaining));
         } else {
             // Clear timer if game is not in progress
             if (timerInterval) {
@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             const timerElement = document.getElementById('timer');
             if (timerElement) {
-                timerElement.textContent = gameData.status === 'waiting' ? 'Waiting to start...' : 'Game Over';
+                timerElement.textContent = data.status === 'waiting' ? 'Waiting to start...' : 'Game Over';
                 timerElement.classList.remove('warning');
             }
         }
