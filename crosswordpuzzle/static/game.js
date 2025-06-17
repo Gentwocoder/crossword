@@ -574,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (waitingRoomSeconds <= 0) {
                 clearWaitingRoomTimer();
                 // Redirect to game board or trigger game start
-                window.location.href = `/game/${puzzleCode}`
+                window.location.href = `api/puzzle/${puzzleCode}/start/`
                 // If you want to auto-start the game as the creator:
                 if (isCreator) {
                     startGameBtn.click();
