@@ -367,6 +367,7 @@ def leaderboard(request, code):
     players = puzzle.players.all().order_by('-points')
     
     context = {
+        'puzzle': puzzle,
         'puzzle_code': code,
         'players': players
     }

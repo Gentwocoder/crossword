@@ -524,16 +524,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 waitingRoom.classList.add('hidden');
                 gameBoard.classList.remove('hidden');
                 clearWaitingRoomTimer();
-                // updateLeaderboard();
+                updateLeaderboard();
                 updateTimer();
             }
         }
 
         // Redirect to leaderboard if game is completed
         if (data.status === 'completed') {
-            window.location.href = `/leaderboard/${puzzleCode}/`;
-            updateLeaderboard();
-            return;
+            setTimeout(() => {
+                window.location.href = `/leaderboard/${puzzleCode}/`;
+                return;
+            }, 3000);
         }
         // Update player list
         updatePlayersList(data.players);

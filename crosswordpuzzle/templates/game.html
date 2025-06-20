@@ -3,6 +3,10 @@
 
 {% block title %}Crossword Game{% endblock %}
 
+{% block extra_head %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% endblock %}
+
 {% block content %}
 <div class="game-container">
     <div class="game-header">
@@ -60,5 +64,3 @@
 {% block extra_js %}
 <script src="{% static 'game.js' %}"></script>
 {% endblock %}
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
