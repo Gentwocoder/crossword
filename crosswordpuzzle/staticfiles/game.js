@@ -219,8 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeBlackCells();
         addCellNumbers();
         
-
-        addMobileSupport();
     }
 
     function initializeBlackCells() {
@@ -906,28 +904,6 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPlayerScore.textContent = `Score: ${currentPoints + points}`;
         }
     }
-
-    // Add to your game.js file
-    function addMobileSupport() {
-        // Prevent zoom on double-tap for input fields
-        document.addEventListener('touchend', function(event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        // Add touch support for cell selection
-        document.querySelectorAll('.cell').forEach(cell => {
-            cell.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                this.click();
-            });
-        });
-    }
-    // Call this after the grid is created
-    let lastTouchEnd = 0;
 
     
 });
