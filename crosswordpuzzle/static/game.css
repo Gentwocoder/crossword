@@ -22,6 +22,49 @@
     align-items: center;
 }
 
+.success-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    animation: popupSlideIn 0.3s ease-out;
+}
+
+.success-popup.fade-out {
+    animation: popupFadeOut 0.3s ease-in forwards;
+}
+
+@keyframes popupSlideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes popupFadeOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+}
+
 .start-game-btn {
     padding: 0.5rem 1rem;
     background-color: #4CAF50;

@@ -507,6 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Redirect to leaderboard if game is completed
         if (data.status === 'completed') {
             window.location.href = `/leaderboard/${puzzleCode}/`;
+            updateLeaderboard();
             return;
         }
         // Show/hide waiting room and game board
@@ -526,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 waitingRoom.classList.add('hidden');
                 gameBoard.classList.remove('hidden');
                 clearWaitingRoomTimer();
-                updateLeaderboard();
+                // updateLeaderboard();
                 updateTimer();
             }
         }
@@ -846,6 +847,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await response.json();
             if (response.ok && data.success) {
+                showSuccessPopup(wordStr, data.points);
                 // Disable all cells for this word
                 disableWordCells(wordObj);
                 // Optionally update score immediately
@@ -856,6 +858,36 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             showError('Error submitting word.');
         }
+    }
+
+    function showSuccessPopup(word, points) {
+        // Remove any existing popup
+        const existingPopup = document.querySelector('.success-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        // Create popup element
+        const popup = document.createElement('div');
+        popup.className = 'success-popup';
+        popup.innerHTML = `
+            <div>✓ Correct!</div>
+            <div>"${word.toUpperCase()}"</div>
+            <div>+${points} points</div>
+        `;
+
+        // Add to page
+        document.body.appendChild(popup);
+
+        // Auto-remove after 2 seconds
+        setTimeout(() => {
+            popup.classList.add('fade-out');
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    popup.parentNode.removeChild(popup);
+                }
+            }, 300);
+        }, 2000);
     }
 
     function updatePlayerScore(points) {
