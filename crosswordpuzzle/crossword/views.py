@@ -171,7 +171,7 @@ def join_puzzle(request):
     )
     if puzzle.status == 'waiting' and not puzzle.waiting_room_start_time:
         puzzle.waiting_room_start_time = timezone.now()
-        puzzle.save()
+        puzzle.save(update_fields=['waiting_room_start_time'])
 
     # if puzzle.status == 'waiting' and puzzle.start_time is None:
     #     puzzle.start_time = timezone.now() + timedelta(seconds=30)

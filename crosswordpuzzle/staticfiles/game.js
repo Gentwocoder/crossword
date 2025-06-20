@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let timerInterval = null;
     let gameData = null;
     let waitingRoomTimer = null;
-    let waitingRoomSeconds = 40;
     let waitingRoomTimerStarted = false;
 
     // Add loading indicator
@@ -144,6 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!puzzle) {
                 throw new Error('Failed to fetch puzzle data');
             }
+
+            gameData = puzzle;
             
             // Store puzzle start time
             puzzleStartTime = puzzle.start_time ? new Date(puzzle.start_time) : null;
@@ -217,6 +218,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize black cells and numbers
         initializeBlackCells();
         addCellNumbers();
+        
+
+        addMobileSupport();
     }
 
     function initializeBlackCells() {
@@ -504,12 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (gameStatus) {
             gameStatus.textContent = `Status: ${data.status}`;
         }
-        // Redirect to leaderboard if game is completed
-        if (data.status === 'completed') {
-            window.location.href = `/leaderboard/${puzzleCode}/`;
-            updateLeaderboard();
-            return;
-        }
+        
         // Show/hide waiting room and game board
         const waitingRoom = document.getElementById('waiting-room');
         const gameBoard = document.getElementById('game-board');
@@ -530,6 +529,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // updateLeaderboard();
                 updateTimer();
             }
+        }
+
+        // Redirect to leaderboard if game is completed
+        if (data.status === 'completed') {
+            window.location.href = `/leaderboard/${puzzleCode}/`;
+            updateLeaderboard();
+            return;
         }
         // Update player list
         updatePlayersList(data.players);
@@ -605,6 +611,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         updateTimer();
+        console.log("Starting timer using:", gameData.waiting_room_start_time);
+
         waitingRoomTimer = setInterval(updateTimer, 1000);
     }
 
@@ -898,4 +906,28 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPlayerScore.textContent = `Score: ${currentPoints + points}`;
         }
     }
-}); 
+
+    // Add to your game.js file
+    function addMobileSupport() {
+        // Prevent zoom on double-tap for input fields
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Add touch support for cell selection
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                this.click();
+            });
+        });
+    }
+    // Call this after the grid is created
+    let lastTouchEnd = 0;
+
+    
+});
