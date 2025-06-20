@@ -72,6 +72,9 @@
     padding: 1px;
     border: 2px solid #2c3e50;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    overflow-x: auto;
+    display: inline-block;
 }
 
 .cell {
@@ -266,14 +269,59 @@
     to { opacity: 1; }
 }
 
-@media (max-width: 768px) {
-    .puzzle-editor {
+@media screen and (max-width: 480px) {
+    .template-preview {
+        padding: 10px;
+    }
+    
+    #template-preview-grid {
+        transform: scale(0.7);
+        min-width: 200px;
+    }
+    
+    #crossword-grid {
+        transform: scale(0.7);
+    }
+    
+    .grid-cell, .cell {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 10px !important;
+    }
+    
+    .template-list {
         flex-direction: column;
+        gap: 10px;
+    }
+    
+    #template-selector {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    #use-template {
+        width: 100%;
+    }
+    
+    .size-inputs {
+        padding: 15px;
     }
 
-    .cell {
-        width: 35px;
-        height: 35px;
+     .input-group {
+        margin-bottom: 15px;
+    }
+    
+    .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 
@@ -492,7 +540,7 @@
     line-height: 1.4;
 }
 
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
     .preview-container {
         flex-direction: column;
     }
@@ -503,6 +551,64 @@
 
     .preview-clues {
         min-width: 100%;
+    }
+
+     .template-grid {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .template-preview {
+        width: 100%;
+        padding: 15px;
+        box-sizing: border-box;
+    }
+    
+    .template-preview h3 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    
+    #template-preview-grid {
+        transform-origin: top center;
+        transform: scale(0.8);
+        margin: 0 auto;
+        min-width: 250px;
+    }
+    
+    .grid-container {
+        padding: 10px;
+        align-items: center;
+    }
+    
+    #crossword-grid {
+        transform-origin: top center;
+        transform: scale(0.8);
+        margin: 0 auto;
+    }
+
+     .grid-cell, .cell {
+        width: 25px !important;
+        height: 25px !important;
+        font-size: 12px !important;
+    }
+    
+    .grid-cell input, .cell input {
+        font-size: 12px !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    
+    /* Make the puzzle editor stack vertically on mobile */
+    .puzzle-editor {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .word-inputs {
+        width: 100%;
+        max-width: 100%;
     }
 }
 
@@ -562,8 +668,10 @@
 }
 
 .template-preview {
+    width: 100%;
     flex: 2;
     min-width: 300px;
+    overflow-x: auto;
 }
 
 .template-preview h3 {
@@ -578,7 +686,10 @@
     padding: 1px;
     border: 2px solid #2c3e50;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
+    min-width: 300px;
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 0 auto;
 }
 
 #template-preview-grid .cell {
