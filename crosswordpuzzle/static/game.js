@@ -520,7 +520,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update game status
         const gameStatus = document.getElementById('game-status');
         console.log('Game status:', data.status);
-        console.log('Full game data:', data);
         
         if (gameStatus) {
             gameStatus.textContent = `Status: ${data.status}`;
@@ -590,10 +589,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const currentPuzzleCode = sessionStorage.getItem('puzzleCode');
-            console.log("Redirecting to:", `/leaderboard/${currentPuzzleCode}/`);
-        
+            
             // Redirect after showing final results
             setTimeout(() => {
+                console.log("Redirecting to:", `/leaderboard/${currentPuzzleCode}/`);
                 window.location.href = `/leaderboard/${currentPuzzleCode}/`;
             }, 3000);
         }
