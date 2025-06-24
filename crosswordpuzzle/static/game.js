@@ -490,6 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             try {
                 const data = await fetchPuzzleData(3, true);
+                updateLeaderboard();
                 updateGameState(data);
             } catch (error) {
                 console.error('Polling error:', error);
@@ -592,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const timerDisplay = document.getElementById("waiting-room-timer");
     
         const startTime = new Date(gameData.waiting_room_start_time);
-        const countdownDuration = 40; // seconds
+        const countdownDuration = 80; // seconds
         const endTime = new Date(startTime.getTime() + countdownDuration * 1000);
 
         function updateTimer() {
@@ -638,7 +639,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const rankSpan = document.createElement('span');
             rankSpan.className = 'player-rank';
             const rank = sortedPlayers.indexOf(player) + 1;
-            rankSpan.textContent = `#${rank}`;
+            rankSpan.textContent = `#${rank} `;
             
             // Add player name
             const nameSpan = document.createElement('span');
@@ -648,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add points
             const pointsSpan = document.createElement('span');
             pointsSpan.className = 'player-points';
-            pointsSpan.textContent = `${player.points} points`;
+            pointsSpan.textContent = ` ${player.points} points`;
             
             li.appendChild(rankSpan);
             li.appendChild(nameSpan);
