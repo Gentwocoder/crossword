@@ -201,7 +201,7 @@ def get_puzzle(request, code):
             puzzle.save(update_fields=['waiting_room_start_time'])
         else:
             elapsed = (timezone.now() - puzzle.waiting_room_start_time).total_seconds()
-            if elapsed >= 40:
+            if elapsed >= 50:
                 puzzle.start_game()
 
     # Mark game as completed if timer has run out

@@ -490,7 +490,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             try {
                 const data = await fetchPuzzleData(3, true);
-                updateLeaderboard();
                 updateGameState(data);
             } catch (error) {
                 console.error('Polling error:', error);
@@ -508,6 +507,14 @@ document.addEventListener('DOMContentLoaded', function() {
             gameStatus.textContent = `Status: ${data.status}`;
         }
         
+        // Redirect to leaderboard if game is completed
+        if (data.status === 'completed') {
+            setTimeout(() => {
+                window.location.href = `/leaderboard/${puzzleCode}/`;
+                return;
+            }, 3000);
+        }
+
         // Show/hide waiting room and game board
         const waitingRoom = document.getElementById('waiting-room');
         const gameBoard = document.getElementById('game-board');
@@ -530,13 +537,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Redirect to leaderboard if game is completed
-        if (data.status === 'completed') {
-            setTimeout(() => {
-                window.location.href = `/leaderboard/${puzzleCode}/`;
-                return;
-            }, 3000);
-        }
         // Update player list
         updatePlayersList(data.players);
         // Disable cells for all solved words
@@ -593,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const timerDisplay = document.getElementById("waiting-room-timer");
     
         const startTime = new Date(gameData.waiting_room_start_time);
-        const countdownDuration = 80; // seconds
+        const countdownDuration = 50; // seconds
         const endTime = new Date(startTime.getTime() + countdownDuration * 1000);
 
         function updateTimer() {
