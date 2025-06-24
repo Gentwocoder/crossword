@@ -252,25 +252,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // function addCellNumbers() {
-    //     let cellNumber = 1;
-    //     const numberedCells = new Set();
-
-    //     puzzle.words.forEach(word => {
-    //         const key = `${word.start_row},${word.start_col}`;
-    //         if (!numberedCells.has(key)) {
-    //             const cell = document.querySelector(`.cell[data-row="${word.start_row}"][data-col="${word.start_col}"]`);
-    //             if (cell) {
-    //                 const numberDiv = document.createElement('div');
-    //                 numberDiv.className = 'cell-number';
-    //                 numberDiv.textContent = cellNumber;
-    //                 cell.insertBefore(numberDiv, cell.firstChild);
-    //                 numberedCells.add(key);
-    //                 cellNumber++;
-    //             }
-    //         }
-    //     });
-    // }
 
     function addCellNumbers() {
         let cellNumber = 1;
@@ -468,21 +449,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // function updateClueSelection(word) {
-    //     // Remove previous selection
-    //     document.querySelectorAll('.clues-container li.active').forEach(li => {
-    //         li.classList.remove('active');
-    //     });
-
-    //     // Find and select the new clue
-    //     const clue = document.querySelector(
-    //         `.clues-container li[data-direction="${word.direction}"][data-start-row="${word.start_row}"][data-start-col="${word.start_col}"]`
-    //     );
-    //     if (clue) {
-    //         clue.classList.add('active');
-    //         selectedClue = clue;
-    //     }
-    // }
 
     function updateClueSelection(word) {
         // Remove previous selection
@@ -553,6 +519,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateGameState(data) {
         // Update game status
         const gameStatus = document.getElementById('game-status');
+        console.log('Game status:', data.status);
+        console.log('Full game data:', data);
         
         if (gameStatus) {
             gameStatus.textContent = `Status: ${data.status}`;
@@ -627,24 +595,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 3000);
         }
     }
-
-    // function startWaitingRoomTimer() {
-    //     if (waitingRoomTimerStarted) return; // Prevent multiple timers
-    //     clearWaitingRoomTimer();
-
-    //     waitingRoomSeconds = 40;
-    //     waitingRoomTimerStarted = true;
-    //     const timerDisplay = document.getElementById("waiting-room-timer");
-    //     if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
-
-    //     waitingRoomTimer = setInterval(() =>{
-    //         waitingRoomSeconds--;
-    //         if (timerDisplay) timerDisplay.textContent = `Game will start in ${waitingRoomSeconds} seconds...`;
-    //         if (waitingRoomSeconds <= 0) {
-    //             clearWaitingRoomTimer();
-    //         }
-    //     }, 1000);
-    // }
 
     function startWaitingRoomTimer() {
         if (waitingRoomTimerStarted) return;
