@@ -588,10 +588,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (timerInterval) {
                 clearInterval(timerInterval);
             }
+
+            const currentPuzzleCode = sessionStorage.getItem('puzzleCode');
+            console.log("Redirecting to:", `/leaderboard/${currentPuzzleCode}/`);
         
             // Redirect after showing final results
             setTimeout(() => {
-                window.location.href = `/leaderboard/${puzzleCode}/`;
+                window.location.href = `/leaderboard/${currentPuzzleCode}/`;
             }, 3000);
         }
     }
