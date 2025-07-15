@@ -359,12 +359,20 @@ def reconnect(request, code):
         return JsonResponse({'error': str(e)}, status=400)
 
 def leaderboard(request, code):
+    # Look for puzzle regardless of active status since game might be completed
     puzzle = CrosswordPuzzle.objects.filter(code=code).first()
     if not puzzle:
         return redirect('home')
     
     # Get all players sorted by points in descending order
-    players = puzzle.players.all().order_by('-points')
+    players = puzzle.players.filter(is_active=True).order_by('-points')
+    
+    # Debug logging
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Leaderboard for puzzle {code}: Found {players.count()} players")
+    for player in players:
+        logger.info(f"Player: {player.display_name}, Points: {player.points}")
     
     context = {
         'puzzle': puzzle,
@@ -372,7 +380,10 @@ def leaderboard(request, code):
         'players': players
     }
     
-    # Delete the puzzle after showing the leaderboard
-    puzzle.delete()
+    # Mark puzzle as inactive instead of deleting it immediately
+    # This preserves the data for the leaderboard display
+    if puzzle.is_active:
+        puzzle.is_active = False
+        puzzle.save()
     
     return render(request, 'leaderboard.html', context)

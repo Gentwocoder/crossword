@@ -17,6 +17,26 @@
     <div class="leaderboard-content">
         <h2>Final Scores</h2>
         
+        <!-- Debug information -->
+        <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-size: 12px; text-align: left; border-radius: 5px;">
+            <strong>Debug Info:</strong><br>
+            Puzzle code: {{ puzzle_code }}<br>
+            Puzzle exists: {{ puzzle|yesno:"Yes,No" }}<br>
+            {% if puzzle %}
+                Puzzle status: {{ puzzle.status }}<br>
+                Puzzle active: {{ puzzle.is_active|yesno:"Yes,No" }}<br>
+            {% endif %}
+            Players count: {{ players.count }}<br>
+            {% if players.count > 0 %}
+                <strong>Players found:</strong><br>
+                {% for player in players %}
+                    - {{ player.display_name }}: {{ player.points }} points (Active: {{ player.is_active|yesno:"Yes,No" }})<br>
+                {% endfor %}
+            {% else %}
+                <strong>No players found in queryset</strong><br>
+            {% endif %}
+        </div>
+        
         {% if players %}
             <div class="players-ranking">
                 {% for player in players %}
@@ -42,6 +62,8 @@
                             {% endif %}
                         </div>
                     </div>
+                {% empty %}
+                    <p class="no-players">No players in the queryset.</p>
                 {% endfor %}
             </div>
         {% else %}
