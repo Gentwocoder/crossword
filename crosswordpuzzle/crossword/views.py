@@ -367,13 +367,6 @@ def leaderboard(request, code):
     # Get all players sorted by points in descending order
     players = puzzle.players.filter(is_active=True).order_by('-points')
     
-    # Debug logging
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.info(f"Leaderboard for puzzle {code}: Found {players.count()} players")
-    for player in players:
-        logger.info(f"Player: {player.display_name}, Points: {player.points}")
-    
     context = {
         'puzzle': puzzle,
         'puzzle_code': code,
