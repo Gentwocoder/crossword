@@ -517,6 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateGameState(data) {
+        gameData = data;
         // Update game status
         const gameStatus = document.getElementById('game-status');
         console.log('Game status:', data.status);

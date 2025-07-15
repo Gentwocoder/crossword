@@ -6,6 +6,61 @@ html, body {
     padding: 0;
 }
 
+.warning-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    animation: pulse-warning 2s infinite;
+}
+
+.warning-content {
+    padding: 12px 20px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+@keyframes pulse-warning {
+    0%, 100% { 
+        background: linear-gradient(135deg, #ff6b35, #f7931e);
+    }
+    50% { 
+        background: linear-gradient(135deg, #ff4444, #ff6600);
+    }
+}
+
+/* Add top padding to body content to account for fixed banner */
+body {
+    padding-top: 46px;
+}
+
+@media screen and (max-width: 768px) {
+    .warning-content {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+    
+    body {
+        padding-top: 42px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .warning-content {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    body {
+        padding-top: 38px;
+    }
+}
+
 .game-container {
     display: flex;
     flex-direction: column;
