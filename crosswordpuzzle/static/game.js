@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let gameData = null;
     let waitingRoomTimer = null;
     let waitingRoomTimerStarted = false;
+    let gameCompletedRedirectStarted = false; // Flag to prevent multiple redirections
 
     // Add loading indicator
     const loadingIndicator = document.createElement('div');
@@ -503,6 +504,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Poll for updates every 5 seconds
         pollingInterval = setInterval(async () => {
+            // Stop polling if game completed redirection has started
+            if (gameCompletedRedirectStarted) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+                return;
+            }
+            
             if (isLoading) return; // Skip if already loading
 
             try {
@@ -575,26 +583,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Redirect to leaderboard if game is completed
-        if (data.status === 'completed') {
+        if (data.status === 'completed' && !gameCompletedRedirectStarted) {
+            gameCompletedRedirectStarted = true; // Prevent multiple redirections
             console.log('Game completed, redirecting to leaderboard...'); // Debug log
         
-            // Show completion message
-            showError('Game completed! Redirecting to leaderboard...', 3000);
-        
-            // Clear any intervals
+            // Clear any intervals first to prevent interference
             if (pollingInterval) {
                 clearInterval(pollingInterval);
+                pollingInterval = null;
             }
             if (timerInterval) {
                 clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            if (waitingRoomTimer) {
+                clearInterval(waitingRoomTimer);
+                waitingRoomTimer = null;
             }
 
+            // Show completion message
+            showError('Game completed! Redirecting to leaderboard...', 3000);
+
             const currentPuzzleCode = sessionStorage.getItem('puzzleCode');
+            
+            // Validate puzzle code exists
+            if (!currentPuzzleCode) {
+                console.error('No puzzle code found in session storage');
+                showError('Error: Cannot redirect to leaderboard. Missing puzzle code.', 5000);
+                return;
+            }
             
             // Redirect after showing final results
             setTimeout(() => {
                 console.log("Redirecting to:", `/leaderboard/${currentPuzzleCode}/`);
-                window.location.href = `/leaderboard/${currentPuzzleCode}/`;
+                try {
+                    window.location.href = `/leaderboard/${currentPuzzleCode}/`;
+                } catch (error) {
+                    console.error('Redirection failed:', error);
+                    // Fallback: try using window.location.replace
+                    window.location.replace(`/leaderboard/${currentPuzzleCode}/`);
+                }
             }, 3000);
         }
     }
@@ -873,6 +901,12 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('beforeunload', () => {
         if (pollingInterval) {
             clearInterval(pollingInterval);
+        }
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        if (waitingRoomTimer) {
+            clearInterval(waitingRoomTimer);
         }
     });
 
