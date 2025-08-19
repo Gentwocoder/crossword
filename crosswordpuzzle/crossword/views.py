@@ -159,6 +159,10 @@ def join_puzzle(request):
     if not puzzle:
         raise Http404('Invalid puzzle code')
 
+    # Prevent joining completed games
+    if puzzle.status == 'completed':
+        raise ValidationError('This game has already ended')
+
     if Player.objects.filter(puzzle=puzzle, display_name=player_name).exists():
         raise ValidationError({
             'error': 'This name is already taken in this puzzle',
@@ -169,14 +173,11 @@ def join_puzzle(request):
         display_name=player_name,
         puzzle=puzzle
     )
+    
+    # Only set waiting room timer if the game is still waiting
     if puzzle.status == 'waiting' and not puzzle.waiting_room_start_time:
         puzzle.waiting_room_start_time = timezone.now()
         puzzle.save(update_fields=['waiting_room_start_time'])
-
-    # if puzzle.status == 'waiting' and puzzle.start_time is None:
-    #     puzzle.start_time = timezone.now() + timedelta(seconds=30)
-    #     puzzle.save(update_fields=['start_time'])
-    #     logger.info(f"First player joined. Game will start at: {puzzle.start_time}")
 
     # Set session expiry to puzzle duration plus 10 minutes buffer
     request.session['player_id'] = str(player.id)
@@ -184,7 +185,8 @@ def join_puzzle(request):
 
     return JsonResponse({
         'success': True,
-        'player_id': str(player.id)  # Return the player ID in the response
+        'player_id': str(player.id),
+        'game_status': puzzle.status  # Include game status in response
     })
 
 @require_http_methods(['GET'])
@@ -297,15 +299,21 @@ def submit_word(request, code):
 @rate_limit('get_players', limit=100, period=60)
 def get_players(request, code):
     """Get all active players in a puzzle with their scores"""
+    from django.db.models import Max
+    
     try:
         puzzle = CrosswordPuzzle.objects.get(code=code)
-        players = puzzle.players.filter(is_active=True).values(
+        
+        # Use the same sorting logic as leaderboard for consistency
+        players = puzzle.players.filter(is_active=True).annotate(
+            last_solve_time=Max('solvedword__solved_at')
+        ).order_by('-points', 'last_solve_time', 'joined_at').values(
             'id', 
             'display_name', 
             'points',
             'is_creator',
             'joined_at'
-        ).order_by('-points')
+        )
         
         return JsonResponse({
             'players': list(players),
@@ -359,13 +367,22 @@ def reconnect(request, code):
         return JsonResponse({'error': str(e)}, status=400)
 
 def leaderboard(request, code):
+    from django.db.models import Max
+    
     # Look for puzzle regardless of active status since game might be completed
     puzzle = CrosswordPuzzle.objects.filter(code=code).first()
     if not puzzle:
         return redirect('home')
     
-    # Get all players sorted by points in descending order
-    players = puzzle.players.filter(is_active=True).order_by('-points')
+    # Get all players with their latest solve time (when they reached their current score)
+    # This gives us a more accurate tiebreaker for players with the same score
+    players_with_last_solve = puzzle.players.filter(is_active=True).annotate(
+        last_solve_time=Max('solvedword__solved_at')
+    )
+    
+    # Sort by points (descending), then by when they reached that score (ascending)
+    # Players who reached the same score earlier will be ranked higher
+    players = players_with_last_solve.order_by('-points', 'last_solve_time', 'joined_at')
     
     context = {
         'puzzle': puzzle,
