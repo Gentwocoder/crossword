@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Send join request
         const csrfToken = getCookie('csrftoken');
-        console.log('CSRF Token:', csrfToken); // Debug log
+        // console.log('CSRF Token:', csrfToken); // Debug log
         
         fetch('/api/join-puzzle/', {
             method: 'POST',
