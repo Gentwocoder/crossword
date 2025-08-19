@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, Http404
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -73,6 +73,7 @@ def home(request):
 def create(request):
     return render(request, 'create.html')
 
+@ensure_csrf_cookie
 def join(request):
     return render(request, 'join.html')
 
@@ -143,11 +144,20 @@ def create_puzzle(request):
 
     return JsonResponse({'code': puzzle.code})
 
-@ensure_csrf_cookie
+@csrf_exempt  # Temporary for debugging
 @require_http_methods(['POST'])
 @handle_error
 def join_puzzle(request):
-    data = json.loads(request.body)
+    # Add debugging
+    logger.info(f"Join puzzle request received. Method: {request.method}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    
+    try:
+        data = json.loads(request.body)
+        logger.info(f"Request data: {data}")
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error: {e}")
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
     
     code = data.get('code')
     player_name = data.get('display_name')
@@ -183,6 +193,7 @@ def join_puzzle(request):
     request.session['player_id'] = str(player.id)
     request.session.set_expiry(puzzle.duration * 60 + 600)
 
+    logger.info(f"Player {player_name} successfully joined puzzle {code}")
     return JsonResponse({
         'success': True,
         'player_id': str(player.id),

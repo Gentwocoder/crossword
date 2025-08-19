@@ -21,12 +21,16 @@ document.addEventListener('DOMContentLoaded', function() {
         hideError();
 
         // Send join request
+        const csrfToken = getCookie('csrftoken');
+        console.log('CSRF Token:', csrfToken); // Debug log
+        
         fetch('/api/join-puzzle/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': csrfToken
             },
+            credentials: 'same-origin', // Include cookies
             body: JSON.stringify({
                 code: code,
                 display_name: name
@@ -72,6 +76,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getCookie(name) {
+        // First try to get from meta tag
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            return metaToken.getAttribute('content');
+        }
+        
+        // Fallback to cookie method
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
             const cookies = document.cookie.split(';');
