@@ -215,7 +215,7 @@ class SolvedWord(models.Model):
     solved_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('puzzle', 'word')
+        unique_together = ('puzzle', 'word', 'solved_by')
         indexes = [
             models.Index(fields=['solved_by', '-solved_at']),  # For last solve time queries
             models.Index(fields=['puzzle', '-solved_at']),     # For puzzle solve history
