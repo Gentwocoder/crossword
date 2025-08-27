@@ -318,11 +318,7 @@ def submit_word(request, code):
             if SolvedWord.objects.filter(puzzle=puzzle, word=puzzle_word, solved_by=player).exists():
                 return JsonResponse({'error': 'You already solved this word'}, status=400)
             
-            # Check if word was already solved by someone else
-            if SolvedWord.objects.filter(puzzle=puzzle, word=puzzle_word).exists():
-                return JsonResponse({'error': 'This word was already solved'}, status=400)
-            
-            # Mark word as solved
+            # Mark word as solved (multiple players can solve the same word)
             solved_word = SolvedWord.objects.create(
                 puzzle=puzzle,
                 word=puzzle_word,
