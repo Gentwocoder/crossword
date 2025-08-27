@@ -528,7 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
         gameData = data;
         // Update game status
         const gameStatus = document.getElementById('game-status');
-        console.log('Game status:', data.status);
+        // console.log('Game status:', data.status);
         
         if (gameStatus) {
             gameStatus.textContent = `Status: ${data.status}`;
@@ -656,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         updateTimer();
-        console.log("Starting timer using:", gameData.waiting_room_start_time);
+        // console.log("Starting timer using:", gameData.waiting_room_start_time);
 
         waitingRoomTimer = setInterval(updateTimer, 1000);
     }
