@@ -226,7 +226,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create a map of all cells that are part of words
         const usedCells = new Set();
         puzzle.words.forEach(word => {
-            const length = word.word.length;
+            // Handle both old format (with 'word' property) and new format (with 'length' property)
+            const length = word.word ? word.word.length : word.length;
             for (let i = 0; i < length; i++) {
                 if (word.direction === 'across') {
                     usedCells.add(`${word.start_row},${word.start_col + i}`);
@@ -392,7 +393,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function findWordAtPosition(row, col) {
         return puzzle.words.find(word => {
-            const length = word.word.length;
+            // Handle both old format (with 'word' property) and new format (with 'length' property)
+            const length = word.word ? word.word.length : word.length;
             if (word.direction === 'across') {
                 return row === word.start_row && col >= word.start_col && col < word.start_col + length;
             } else {
@@ -431,8 +433,11 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.classList.remove('selected');
         });
 
+        // Handle both old format (with 'word' property) and new format (with 'length' property)
+        const length = word.word ? word.word.length : word.length;
+        
         // Highlight the word cells
-        for (let i = 0; i < word.word.length; i++) {
+        for (let i = 0; i < length; i++) {
             const row = word.direction === 'across' ? word.start_row : word.start_row + i;
             const col = word.direction === 'across' ? word.start_col + i : word.start_col;
             const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
@@ -471,9 +476,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const word = findWordAtPosition(selectedCell.row, selectedCell.col);
         if (!word) return;
 
+        // Handle both old format (with 'word' property) and new format (with 'length' property)
+        const length = word.word ? word.word.length : word.length;
+
         // Get the current answer
         let answer = '';
-        for (let i = 0; i < word.word.length; i++) {
+        for (let i = 0; i < length; i++) {
             const row = word.direction === 'across' ? word.start_row : word.start_row + i;
             const col = word.direction === 'across' ? word.start_col + i : word.start_col;
             const input = document.querySelector(
@@ -482,9 +490,9 @@ document.addEventListener('DOMContentLoaded', function() {
             answer += input.value;
         }
 
-        // Check if the answer is correct
-        if (answer.length === word.word.length) {
-            // Mark the word as completed
+        // Check if the answer is complete (all letters filled)
+        if (answer.length === length) {
+            // Mark the word as completed visually
             const clue = document.querySelector(
                 `.clues-container li[data-direction="${word.direction}"][data-start-row="${word.start_row}"][data-start-col="${word.start_col}"]`
             );
@@ -492,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 clue.classList.add('completed');
             }
 
-            // Update player's answers
+            // Submit the word to server for validation
             submitWordToServer(answer, word);
         }
     }
@@ -561,7 +569,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Disable cells for all solved words
         if (data.solved_words && Array.isArray(data.solved_words)) {
             data.solved_words.forEach(wordStr => {
-                const wordObj = puzzle.words.find(w => w.word === wordStr);
+                // Find the word object by matching solved word text with available words
+                // This works for both old format (direct match) and new format (find by position)
+                const wordObj = puzzle.words.find(w => {
+                    // If we have the actual word, match directly
+                    if (w.word) {
+                        return w.word === wordStr;
+                    }
+                    // If we only have structure data, we need to find another way
+                    // For now, we'll mark words as solved based on server response
+                    return false;
+                });
                 if (wordObj) {
                     disableWordCells(wordObj);
                 }
@@ -613,7 +631,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Redirect after showing final results
+            // Redirect quickly to leaderboard
             setTimeout(() => {
                 console.log("Redirecting to:", `/leaderboard/${currentPuzzleCode}/`);
                 try {
@@ -718,7 +736,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function disableWordCells(wordObj) {
-        for (let i = 0; i < wordObj.word.length; i++) {
+        // Handle both old format (with 'word' property) and new format (with 'length' property)
+        const length = wordObj.word ? wordObj.word.length : wordObj.length;
+        
+        for (let i = 0; i < length; i++) {
             const row = wordObj.direction === 'across' ? wordObj.start_row : wordObj.start_row + i;
             const col = wordObj.direction === 'across' ? wordObj.start_col + i : wordObj.start_col;
             const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"] input`);

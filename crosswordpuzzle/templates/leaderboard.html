@@ -14,6 +14,12 @@
         <p>Status: <strong>{{ puzzle.status|title }}</strong></p>
     </div>
 
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading results...</p>
+    </div>
+
     <div class="leaderboard-content">
         <h2>Final Scores</h2>
         
@@ -35,9 +41,9 @@
                         <div class="player-info">
                             <div class="player-name">{{ player.display_name }}</div>
                             <div class="player-score">{{ player.points }} points</div>
-                            {% if player.correct_words.exists %}
+                            {% if player.correct_words_count > 0 %}
                                 <div class="words-solved">
-                                    Words solved: {{ player.correct_words.count }}
+                                    Words solved: {{ player.correct_words_count }}
                                 </div>
                             {% endif %}
                         </div>
@@ -59,6 +65,23 @@
 
 
 <script>
+// Show loading indicator on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Hide loading indicator once page is fully loaded
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+    }
+});
+
+// Show loading when navigating away
+window.addEventListener('beforeunload', function() {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'flex';
+    }
+});
+
 function shareResults() {
     const text = `Check out my crossword game results! Puzzle: {{ puzzle_code }}`;
     if (navigator.share) {
