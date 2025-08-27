@@ -186,6 +186,11 @@ class Player(models.Model):
 
     class Meta:
         unique_together = ['puzzle', 'display_name']
+        indexes = [
+            models.Index(fields=['puzzle', 'is_active', '-points', 'joined_at'], name='player_leaderboard_idx'),
+            models.Index(fields=['puzzle', 'is_active'], name='player_active_idx'),
+            models.Index(fields=['-points'], name='player_points_idx'),
+        ]
 
     def __str__(self):
         return f"{self.display_name} in {self.puzzle.code}"

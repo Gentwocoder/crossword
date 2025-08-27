@@ -310,15 +310,11 @@ def submit_word(request, code):
 @rate_limit('get_players', limit=100, period=60)
 def get_players(request, code):
     """Get all active players in a puzzle with their scores"""
-    from django.db.models import Max
-    
     try:
         puzzle = CrosswordPuzzle.objects.get(code=code)
         
-        # Use the same sorting logic as leaderboard for consistency
-        players = puzzle.players.filter(is_active=True).annotate(
-            last_solve_time=Max('solvedword__solved_at')
-        ).order_by('-points', 'last_solve_time', 'joined_at').values(
+        # Use simpler, faster query for consistency with leaderboard
+        players = puzzle.players.filter(is_active=True).order_by('-points', 'joined_at').values(
             'id', 
             'display_name', 
             'points',
@@ -378,27 +374,34 @@ def reconnect(request, code):
         return JsonResponse({'error': str(e)}, status=400)
 
 def leaderboard(request, code):
-    from django.db.models import Max
+    from django.core.cache import cache
     
     # Look for puzzle regardless of active status since game might be completed
     puzzle = CrosswordPuzzle.objects.filter(code=code).first()
     if not puzzle:
         return redirect('home')
     
-    # Get all players with their latest solve time (when they reached their current score)
-    # This gives us a more accurate tiebreaker for players with the same score
-    players_with_last_solve = puzzle.players.filter(is_active=True).annotate(
-        last_solve_time=Max('solvedword__solved_at')
-    )
+    # Try to get cached leaderboard data first
+    cache_key = f'leaderboard_{code}'
+    cached_data = cache.get(cache_key)
     
-    # Sort by points (descending), then by when they reached that score (ascending)
-    # Players who reached the same score earlier will be ranked higher
-    players = players_with_last_solve.order_by('-points', 'last_solve_time', 'joined_at')
+    if not cached_data:
+        # Use a simpler, faster query for the leaderboard
+        # Sort by points (descending), then by joined_at (ascending) for speed
+        players = puzzle.players.filter(is_active=True).select_related().order_by('-points', 'joined_at')
+        
+        # Cache the results for 30 seconds to speed up repeated loads
+        cache.set(cache_key, {
+            'puzzle': puzzle,
+            'players': list(players)
+        }, 30)
+        
+        cached_data = cache.get(cache_key)
     
     context = {
-        'puzzle': puzzle,
+        'puzzle': cached_data['puzzle'],
         'puzzle_code': code,
-        'players': players
+        'players': cached_data['players']
     }
     
     # Mark puzzle as inactive instead of deleting it immediately
@@ -406,5 +409,7 @@ def leaderboard(request, code):
     if puzzle.is_active:
         puzzle.is_active = False
         puzzle.save()
+        # Clear cache since puzzle status changed
+        cache.delete(cache_key)
     
     return render(request, 'leaderboard.html', context)

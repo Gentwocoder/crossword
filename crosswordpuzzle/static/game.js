@@ -602,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Show completion message
-            showError('Game completed! Redirecting to leaderboard...', 3000);
+            showError('Game completed! Redirecting to leaderboard...', 1500);
 
             const currentPuzzleCode = sessionStorage.getItem('puzzleCode');
             
@@ -613,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Redirect after showing final results
+            // Redirect quickly to leaderboard for better user experience
             setTimeout(() => {
                 console.log("Redirecting to:", `/leaderboard/${currentPuzzleCode}/`);
                 try {
@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Fallback: try using window.location.replace
                     window.location.replace(`/leaderboard/${currentPuzzleCode}/`);
                 }
-            }, 3000);
+            }, 1500); // Reduced from 3000ms to 1500ms
         }
     }
 
