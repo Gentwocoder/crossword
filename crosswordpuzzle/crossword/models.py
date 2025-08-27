@@ -186,11 +186,6 @@ class Player(models.Model):
 
     class Meta:
         unique_together = ['puzzle', 'display_name']
-        indexes = [
-            models.Index(fields=['puzzle', 'is_active', '-points']),  # For leaderboard queries
-            models.Index(fields=['puzzle', '-points', 'joined_at']),  # For ranking
-            models.Index(fields=['-points', 'joined_at']),  # For general ranking
-        ]
 
     def __str__(self):
         return f"{self.display_name} in {self.puzzle.code}"
@@ -215,8 +210,4 @@ class SolvedWord(models.Model):
     solved_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('puzzle', 'word', 'solved_by')
-        indexes = [
-            models.Index(fields=['solved_by', '-solved_at']),  # For last solve time queries
-            models.Index(fields=['puzzle', '-solved_at']),     # For puzzle solve history
-        ]
+        unique_together = ('puzzle', 'word')

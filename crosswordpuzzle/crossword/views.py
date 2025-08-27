@@ -144,7 +144,7 @@ def create_puzzle(request):
 
     return JsonResponse({'code': puzzle.code})
 
-@ensure_csrf_cookie
+@csrf_exempt  # Temporary for debugging
 @require_http_methods(['POST'])
 @handle_error
 def join_puzzle(request):
@@ -221,24 +221,7 @@ def get_puzzle(request, code):
     if puzzle.status == 'in_progress' and puzzle.time_remaining == 0:
         puzzle.end_game()
     players = Player.objects.filter(puzzle=puzzle).values('id', 'display_name', 'points')
-    
-    # Only send word answers if the game is completed, otherwise just send structure
-    if puzzle.status == 'completed':
-        words = Word.objects.filter(puzzle=puzzle).values('word', 'hint', 'direction', 'start_row', 'start_col')
-    else:
-        # Hide the actual word answers during gameplay for security
-        words_list = []
-        for word in Word.objects.filter(puzzle=puzzle):
-            words_list.append({
-                'hint': word.hint,
-                'direction': word.direction,
-                'start_row': word.start_row,
-                'start_col': word.start_col,
-                'length': len(word.word),  # Only send length, not the actual word
-                'id': word.id  # Include ID for submission validation
-            })
-        words = words_list
-    
+    words = Word.objects.filter(puzzle=puzzle).values('word', 'hint', 'direction', 'start_row', 'start_col')
     solved_words = list(SolvedWord.objects.filter(puzzle=puzzle).values_list('word__word', flat=True))
     return JsonResponse({
         'rows': puzzle.rows,
@@ -293,8 +276,6 @@ def submit_word(request, code):
     try:
         data = json.loads(request.body)
         word = data.get('word')
-        word_position = data.get('position')  # Optional: row, col, direction for extra validation
-        
         if not word:
             return JsonResponse({'error': 'Missing word'}, status=400)
 
@@ -314,26 +295,9 @@ def submit_word(request, code):
         # Check if word is correct
         puzzle_word = Word.objects.filter(puzzle=puzzle, word__iexact=word).first()
         if puzzle_word:
-            # Check if word was already solved by this player
-            if SolvedWord.objects.filter(puzzle=puzzle, word=puzzle_word, solved_by=player).exists():
-                return JsonResponse({'error': 'You already solved this word'}, status=400)
-            
-            # Mark word as solved (multiple players can solve the same word)
-            solved_word = SolvedWord.objects.create(
-                puzzle=puzzle,
-                word=puzzle_word,
-                solved_by=player
-            )
-            
             # Add point to player
             player.add_points(1)
-            
-            return JsonResponse({
-                'success': True, 
-                'points': 1,
-                'total_points': player.points,
-                'word': puzzle_word.word  # Only return the actual word after correct submission
-            })
+            return JsonResponse({'success': True, 'points': player.points})
         else:
             return JsonResponse({'error': 'Incorrect word'}, status=400)
     except json.JSONDecodeError:
@@ -414,39 +378,22 @@ def reconnect(request, code):
         return JsonResponse({'error': str(e)}, status=400)
 
 def leaderboard(request, code):
-    from django.db import transaction
+    from django.db.models import Max
     
     # Look for puzzle regardless of active status since game might be completed
-    puzzle = CrosswordPuzzle.objects.select_related().filter(code=code).first()
+    puzzle = CrosswordPuzzle.objects.filter(code=code).first()
     if not puzzle:
         return redirect('home')
     
-    # Use the simplest possible query for maximum speed
-    # Primary sort: points (descending), secondary sort: joined_at (ascending)
-    # This is much faster than complex annotations and provides fair ranking
-    players = list(puzzle.players.filter(is_active=True)
-                  .select_related()
-                  .order_by('-points', 'joined_at')
-                  .values('id', 'display_name', 'points', 'joined_at'))
+    # Get all players with their latest solve time (when they reached their current score)
+    # This gives us a more accurate tiebreaker for players with the same score
+    players_with_last_solve = puzzle.players.filter(is_active=True).annotate(
+        last_solve_time=Max('solvedword__solved_at')
+    )
     
-    # Add word count efficiently (only one extra query for all players)
-    if players:
-        # Get word counts for all players in one query
-        player_ids = [p['id'] for p in players]
-        word_counts = {}
-        try:
-            from django.db.models import Count
-            counts_query = Player.objects.filter(id__in=player_ids).annotate(
-                word_count=Count('correct_words')
-            ).values('id', 'word_count')
-            word_counts = {item['id']: item['word_count'] for item in counts_query}
-        except:
-            # Fallback if annotation fails
-            word_counts = {pid: 0 for pid in player_ids}
-        
-        # Add word counts to player data
-        for player in players:
-            player['correct_words_count'] = word_counts.get(player['id'], 0)
+    # Sort by points (descending), then by when they reached that score (ascending)
+    # Players who reached the same score earlier will be ranked higher
+    players = players_with_last_solve.order_by('-points', 'last_solve_time', 'joined_at')
     
     context = {
         'puzzle': puzzle,
@@ -454,10 +401,10 @@ def leaderboard(request, code):
         'players': players
     }
     
-    # Mark puzzle as inactive using atomic transaction for speed
+    # Mark puzzle as inactive instead of deleting it immediately
+    # This preserves the data for the leaderboard display
     if puzzle.is_active:
-        with transaction.atomic():
-            puzzle.is_active = False
-            puzzle.save(update_fields=['is_active'])
+        puzzle.is_active = False
+        puzzle.save()
     
     return render(request, 'leaderboard.html', context)
