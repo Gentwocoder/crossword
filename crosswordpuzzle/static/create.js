@@ -689,8 +689,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (rows < 5 || rows > 15 || cols < 5 || cols > 15) {
-            showError('Grid dimensions must be between 5x5 and 15x15');
+        if (rows < 1 || rows > 50 || cols < 1 || cols > 50) {
+            showError('Grid dimensions must be between 1x1 and 50x50');
+            return;
+        }
+
+        if (words.length === 0) {
+            showError('Please add at least one word to the puzzle');
             return;
         }
 
@@ -731,10 +736,18 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             console.log('Response status:', response.status); // Debug log
+            console.log('Response headers:', response.headers); // Debug log
             if (!response.ok) {
-                return response.json().then(data => {
-                    console.log('Error response:', data); // Debug log
-                    throw new Error(data.error || 'Failed to generate puzzle code');
+                return response.text().then(text => {
+                    console.log('Raw error response:', text); // Debug log
+                    try {
+                        const data = JSON.parse(text);
+                        console.log('Parsed error response:', data); // Debug log
+                        throw new Error(data.error || `Server error: ${response.status}`);
+                    } catch (parseError) {
+                        console.log('Failed to parse error response:', parseError);
+                        throw new Error(`Server error: ${response.status} - ${text}`);
+                    }
                 });
             }
             return response.json();

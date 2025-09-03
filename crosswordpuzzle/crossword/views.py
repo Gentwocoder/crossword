@@ -111,7 +111,12 @@ def game(request, code):
 @require_http_methods(['POST'])
 @handle_error
 def create_puzzle(request):
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+        logger.info(f"Creating puzzle with data: rows={data.get('rows')}, cols={data.get('cols')}, words_count={len(data.get('words', []))}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in create_puzzle: {e}")
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
     
     rows = data.get('rows')
     cols = data.get('cols')
@@ -119,28 +124,56 @@ def create_puzzle(request):
     duration = data.get('duration', 30)
 
     if not all([rows, cols, words]):
+        logger.error(f"Missing required fields: rows={rows}, cols={cols}, words={bool(words)}")
         raise ValidationError('Missing required fields')
 
+    # Validate data types and ranges
+    try:
+        rows = int(rows)
+        cols = int(cols)
+        duration = int(duration)
+    except (ValueError, TypeError) as e:
+        logger.error(f"Invalid data types: {e}")
+        raise ValidationError('Invalid data types for rows, cols, or duration')
+
+    if not (1 <= rows <= 50 and 1 <= cols <= 50):
+        logger.error(f"Grid size out of range: {rows}x{cols}")
+        raise ValidationError('Grid size must be between 1x1 and 50x50')
+
+    if len(words) == 0:
+        logger.error("No words provided")
+        raise ValidationError('At least one word is required')
+
     # Create puzzle with validation
-    puzzle = CrosswordPuzzle.objects.create(
-        rows=rows,
-        cols=cols,
-        duration=duration,
-        status='waiting'
-    )
-    # puzzle.start_time = CrosswordPuzzle.created_at + timedelta(seconds=30)
-    # puzzle.save()
+    try:
+        puzzle = CrosswordPuzzle.objects.create(
+            rows=rows,
+            cols=cols,
+            duration=duration,
+            status='waiting'
+        )
+        logger.info(f"Created puzzle with code: {puzzle.code}")
+    except Exception as e:
+        logger.error(f"Failed to create puzzle: {e}")
+        raise ValidationError(f'Failed to create puzzle: {str(e)}')
     
     # Create Word objects with validation
-    for word_data in words:
-        Word.objects.create(
-            puzzle=puzzle,
-            word=word_data['word'],
-            hint=word_data['hint'],
-            direction=word_data['direction'],
-            start_row=word_data['startRow'],
-            start_col=word_data['startCol']
-        )
+    try:
+        for i, word_data in enumerate(words):
+            Word.objects.create(
+                puzzle=puzzle,
+                word=word_data['word'],
+                hint=word_data['hint'],
+                direction=word_data['direction'],
+                start_row=word_data['startRow'],
+                start_col=word_data['startCol']
+            )
+        logger.info(f"Created {len(words)} words for puzzle {puzzle.code}")
+    except Exception as e:
+        logger.error(f"Failed to create words: {e}")
+        # Clean up the puzzle if word creation failed
+        puzzle.delete()
+        raise ValidationError(f'Failed to create words: {str(e)}')
 
     return JsonResponse({'code': puzzle.code})
 
