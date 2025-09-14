@@ -30,6 +30,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let players = [];
     let isLoading = false;
     let pollingInterval = null;
+    let basePollingInterval = 2000; // Base interval: 2 seconds
+    let fastPollingInterval = 1000;  // Fast interval: 1 second (during active gameplay)
+    let slowPollingInterval = 5000;  // Slow interval: 5 seconds (when idle)
+    let currentPollingInterval = basePollingInterval;
+    let lastActivityTime = Date.now();
+    let activityThreshold = 10000; // 10 seconds of inactivity before slowing down
+    let pendingRequest = false;
+    let lastRequestTime = 0;
+    let minRequestInterval = 500; // Minimum 500ms between requests
+    let submissionTimeouts = new Map(); // Store timeouts for word submission debouncing
+    let lastSubmissionTime = 0;
+    let submissionDebounceDelay = 1000; // 1 second debounce for word submissions
     let isCreator = false;
     let countdownInterval = null;
     let puzzleStartTime = null;
@@ -290,6 +302,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handleCellClick(row, col) {
+        // Track user activity
+        lastActivityTime = Date.now();
+        
         // Find the word that contains this cell
         const word = findWordAtPosition(row, col);
         if (!word) return;
@@ -345,6 +360,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handleKeyPress(event, row, col) {
+        // Track user activity for any key press
+        lastActivityTime = Date.now();
+        
         const input = event.target;
 
         switch (event.key) {
@@ -492,8 +510,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 clue.classList.add('completed');
             }
 
-            // Update player's answers
-            submitWordToServer(answer, word);
+            // Debounce word submission to prevent spam
+            const wordKey = `${word.direction}-${word.start_row}-${word.start_col}`;
+            
+            // Clear any existing timeout for this word
+            if (submissionTimeouts.has(wordKey)) {
+                clearTimeout(submissionTimeouts.get(wordKey));
+            }
+            
+            // Set a new timeout for submission
+            const timeoutId = setTimeout(() => {
+                const now = Date.now();
+                if (now - lastSubmissionTime >= submissionDebounceDelay) {
+                    lastSubmissionTime = now;
+                    submitWordToServer(answer, word);
+                }
+                submissionTimeouts.delete(wordKey);
+            }, submissionDebounceDelay);
+            
+            submissionTimeouts.set(wordKey, timeoutId);
         }
     }
 
@@ -502,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(pollingInterval);
         }
 
-        // Poll for updates every 5 seconds
+        // Adaptive polling with request throttling
         pollingInterval = setInterval(async () => {
             // Stop polling if game completed redirection has started
             if (gameCompletedRedirectStarted) {
@@ -511,17 +546,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            if (isLoading) return; // Skip if already loading
+            // Skip if already loading or pending request
+            if (isLoading || pendingRequest) return;
+
+            // Throttle requests
+            const now = Date.now();
+            if (now - lastRequestTime < minRequestInterval) return;
+
+            // Determine polling frequency based on activity
+            const timeSinceLastActivity = now - lastActivityTime;
+            let desiredInterval;
+            
+            if (timeSinceLastActivity < activityThreshold) {
+                desiredInterval = fastPollingInterval; // Active gameplay
+            } else {
+                desiredInterval = slowPollingInterval; // Idle
+            }
+
+            // Adjust polling interval if needed
+            if (desiredInterval !== currentPollingInterval) {
+                currentPollingInterval = desiredInterval;
+                clearInterval(pollingInterval);
+                startPolling(); // Restart with new interval
+                return;
+            }
 
             try {
+                pendingRequest = true;
+                lastRequestTime = now;
                 const data = await fetchPuzzleData(3, true);
                 updateGameState(data);
             } catch (error) {
                 console.error('Polling error:', error);
                 // Don't show error for polling failures to avoid spam
-                // But do log it for debugging
+            } finally {
+                pendingRequest = false;
             }
-        }, 5000);
+        }, currentPollingInterval);
     }
 
     function updateGameState(data) {
@@ -911,6 +972,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     async function submitWordToServer(wordStr, wordObj) {
+        // Track user activity
+        lastActivityTime = Date.now();
+        
         try {
             const response = await fetch(`/api/puzzle/${puzzleCode}/submit/`, {
                 method: 'POST',

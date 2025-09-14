@@ -237,10 +237,28 @@ def join_puzzle(request):
 @handle_error
 @require_player
 def get_puzzle(request, code):
-    puzzle = CrosswordPuzzle.objects.filter(code=code).first()
+    from django.core.cache import cache
+    
+    # Try cache first for better performance
+    cache_key = f'puzzle_data_{code}'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        # Update player_id for current request
+        cached_data['player_id'] = str(request.player.id)
+        return JsonResponse(cached_data)
+    
+    # Optimized query with select_related and prefetch_related
+    puzzle = CrosswordPuzzle.objects.select_related().prefetch_related(
+        'players',
+        'words',
+        'solvedword_set__word'
+    ).filter(code=code).first()
+    
     if not puzzle:
         raise Http404('Puzzle not found')
     
+    # Handle waiting room timer logic
     if puzzle.status == 'waiting':
         if not puzzle.waiting_room_start_time:
             puzzle.waiting_room_start_time = timezone.now()
@@ -253,21 +271,29 @@ def get_puzzle(request, code):
     # Mark game as completed if timer has run out
     if puzzle.status == 'in_progress' and puzzle.time_remaining == 0:
         puzzle.end_game()
-    players = Player.objects.filter(puzzle=puzzle).values('id', 'display_name', 'points')
-    words = Word.objects.filter(puzzle=puzzle).values('word', 'hint', 'direction', 'start_row', 'start_col')
-    solved_words = list(SolvedWord.objects.filter(puzzle=puzzle).values_list('word__word', flat=True))
-    return JsonResponse({
+    
+    # Use optimized queries with prefetched data
+    players_data = list(puzzle.players.filter(is_active=True).values('id', 'display_name', 'points', 'is_creator'))
+    words_data = list(puzzle.words.values('word', 'hint', 'direction', 'start_row', 'start_col'))
+    solved_words_data = list(puzzle.solvedword_set.values_list('word__word', flat=True))
+    
+    response_data = {
         'rows': puzzle.rows,
         'cols': puzzle.cols,
-        'words': list(words),
+        'words': words_data,
         'status': puzzle.status,
         'duration': puzzle.duration,
         'time_remaining': puzzle.time_remaining,
-        'players': list(players),
+        'players': players_data,
         'player_id': str(request.player.id),
-        'solved_words': solved_words,
+        'solved_words': solved_words_data,
         'waiting_room_start_time': puzzle.waiting_room_start_time.isoformat() if puzzle.waiting_room_start_time else None
-    })
+    }
+    
+    # Cache for 10 seconds (balance between freshness and performance)
+    cache.set(cache_key, {k: v for k, v in response_data.items() if k != 'player_id'}, 10)
+    
+    return JsonResponse(response_data)
 
 @ensure_csrf_cookie
 @require_http_methods(['POST'])
@@ -312,32 +338,56 @@ def submit_word(request, code):
         if not word:
             return JsonResponse({'error': 'Missing word'}, status=400)
 
-        puzzle = CrosswordPuzzle.objects.get(code=code)
+        # Use select_for_update to prevent race conditions
+        puzzle = CrosswordPuzzle.objects.select_for_update().get(code=code)
         
         # Get player info from session
         player_id = request.session.get('player_id')
         if not player_id:
             return JsonResponse({'error': 'Player not found'}, status=404)
 
-        player = Player.objects.get(id=player_id)
+        player = Player.objects.select_for_update().get(id=player_id)
 
         # Check if game is in progress
         if puzzle.status != 'in_progress':
             return JsonResponse({'error': 'Game is not in progress'}, status=400)
 
-        # Check if word is correct
+        # Check if word is correct and not already solved
         puzzle_word = Word.objects.filter(puzzle=puzzle, word__iexact=word).first()
         if puzzle_word:
-            # Add point to player
+            # Check if word was already solved
+            already_solved = SolvedWord.objects.filter(puzzle=puzzle, word=puzzle_word).exists()
+            if already_solved:
+                return JsonResponse({'error': 'Word already solved'}, status=400)
+            
+            # Create solved word record
+            SolvedWord.objects.create(
+                puzzle=puzzle,
+                word=puzzle_word,
+                solved_by=player
+            )
+            
+            # Add points to player
             player.add_points(1)
+            
+            # Clear cache for this puzzle
+            from django.core.cache import cache
+            cache.delete(f'puzzle_data_{code}')
+            cache.delete(f'leaderboard_{code}')
+            
             return JsonResponse({'success': True, 'points': player.points})
         else:
             return JsonResponse({'error': 'Incorrect word'}, status=400)
+            
+    except CrosswordPuzzle.DoesNotExist:
+        return JsonResponse({'error': 'Puzzle not found'}, status=404)
+    except Player.DoesNotExist:
+        return JsonResponse({'error': 'Player not found'}, status=404)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON data'}, status=400)
     except Exception as e:
         logger.error(f"Error submitting word: {str(e)}", exc_info=True)
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'error': 'Internal server error'}, status=500)
 
 @require_http_methods(["GET"])
 @rate_limit('get_players', limit=100, period=60)
@@ -407,34 +457,57 @@ def reconnect(request, code):
         return JsonResponse({'error': str(e)}, status=400)
 
 def leaderboard(request, code):
+    """Optimized leaderboard view with enhanced caching and query performance"""
     from django.core.cache import cache
-    
-    # Look for puzzle regardless of active status since game might be completed
-    puzzle = CrosswordPuzzle.objects.filter(code=code).first()
-    if not puzzle:
-        return redirect('home')
     
     # Try to get cached leaderboard data first
     cache_key = f'leaderboard_{code}'
     cached_data = cache.get(cache_key)
     
     if not cached_data:
-        # Use a simpler, faster query for the leaderboard
-        # Sort by points (descending), then by joined_at (ascending) for speed
-        players = puzzle.players.filter(is_active=True).select_related().order_by('-points', 'joined_at')
+        # Look for puzzle with optimized query
+        puzzle = CrosswordPuzzle.objects.select_related().prefetch_related(
+            'players__solvedword_set'
+        ).filter(code=code).first()
         
-        # Cache the results for 30 seconds to speed up repeated loads
-        cache.set(cache_key, {
+        if not puzzle:
+            return redirect('home')
+        
+        # Get all players with their solved words count and timestamps using optimized queries
+        players_data = []
+        for player in puzzle.players.filter(is_active=True):
+            solved_words = player.solvedword_set.filter(puzzle=puzzle)
+            points = solved_words.count()
+            
+            # Get the timestamp of when they reached their current score
+            last_solve_time = None
+            if solved_words.exists():
+                last_solve_time = solved_words.order_by('-timestamp').first().timestamp
+            
+            players_data.append({
+                'name': player.name,
+                'points': points,
+                'last_solve_time': last_solve_time or player.joined_at,
+                'joined_at': player.joined_at
+            })
+        
+        # Sort players: by points descending, then by last solve time ascending (earlier = better)
+        players_data.sort(key=lambda x: (-x['points'], x['last_solve_time']))
+        
+        # Cache the results for 15 seconds to balance freshness with performance
+        cached_data = {
             'puzzle': puzzle,
-            'players': list(players)
-        }, 30)
-        
-        cached_data = cache.get(cache_key)
+            'players_data': players_data
+        }
+        cache.set(cache_key, cached_data, 15)
+    
+    puzzle = cached_data['puzzle']
+    players_data = cached_data['players_data']
     
     context = {
-        'puzzle': cached_data['puzzle'],
+        'puzzle': puzzle,
         'puzzle_code': code,
-        'players': cached_data['players']
+        'players': players_data
     }
     
     # Mark puzzle as inactive instead of deleting it immediately
