@@ -13,4 +13,4 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'crosswordpuzzle.settings')
 
-app = get_wsgi_application()
+appllication = get_wsgi_application()
