@@ -60,7 +60,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'crosswordpuzzle.wsgi.appllication'
+WSGI_APPLICATION = 'crosswordpuzzle.wsgi.application'
 
 
 # Database
